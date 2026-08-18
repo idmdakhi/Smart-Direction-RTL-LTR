@@ -72,3 +72,16 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 
 .\pack.ps1 -Version 2.3.0
 ```
+
+---
+
+# مسیر تقریبی روی ویندوز:
+
+```
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --pack-extension="D:\DevOps\js\Smart-Direction-RTL-LTR" --pack-extension-key="D:\path\to\smart-direction.pem"
+
+---
+
+npm install -g crx
+crx pack ./smart-direction -o smart-direction.crx -p key.pem
+```
