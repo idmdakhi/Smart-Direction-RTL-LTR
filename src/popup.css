@@ -7,7 +7,8 @@
   --rtl: #b4553b;
   --off: #8a8a8a;
   --radius: 10px;
-  font-family: "Segoe UI", Tahoma, "IRANSansWeb", "Vazirmatn", system-ui, sans-serif;
+  font-family:
+    "Segoe UI", Tahoma, "IRANSansWeb", "Vazirmatn", system-ui, sans-serif;
 }
 
 * {
@@ -44,9 +45,17 @@ body {
   font-weight: 700;
   overflow: hidden;
 }
-.glyph-a { font-family: Georgia, serif; font-size: 13px; }
-.glyph-alef { font-size: 15px; }
-.glyph-arrow { font-size: 11px; opacity: 0.9; }
+.glyph-a {
+  font-family: Georgia, serif;
+  font-size: 13px;
+}
+.glyph-alef {
+  font-size: 15px;
+}
+.glyph-arrow {
+  font-size: 11px;
+  opacity: 0.9;
+}
 
 .title-block h1 {
   margin: 0;
@@ -86,7 +95,10 @@ main {
   background: #fff;
   cursor: pointer;
   text-align: right;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
 }
 .mode-btn:hover {
   border-color: #c3bfb3;
@@ -104,10 +116,18 @@ main {
   height: 9px;
   border-radius: 50%;
 }
-.mode-dot--auto { background: var(--auto); }
-.mode-dot--ltr { background: var(--ltr); }
-.mode-dot--rtl { background: var(--rtl); }
-.mode-dot--off { background: var(--off); }
+.mode-dot--auto {
+  background: var(--auto);
+}
+.mode-dot--ltr {
+  background: var(--ltr);
+}
+.mode-dot--rtl {
+  background: var(--rtl);
+}
+.mode-dot--off {
+  background: var(--off);
+}
 
 .mode-name {
   font-weight: 600;
@@ -131,6 +151,9 @@ main {
 .threshold-section {
   border-top: 1px solid var(--line);
   padding-top: 12px;
+}
+.threshold-section + .threshold-section {
+  margin-top: -4px;
 }
 .threshold-label {
   display: flex;

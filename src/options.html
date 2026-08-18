@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>تنظیمات Smart Direction</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="page-header">
+        <div class="logo">
+          <span class="logo-a">A</span>
+          <span class="logo-arrow">⇄</span>
+          <span class="logo-alef">ا</span>
+        </div>
+        <div>
+          <h1>Smart Direction</h1>
+          <p class="subtitle">تنظیمات سراسری و مدیریت سایت‌ها</p>
+        </div>
+      </header>
+
+      <section class="card">
+        <h2>پیش‌فرض سراسری</h2>
+        <p class="desc">
+          این مقادیر برای همهٔ سایت‌هایی که override ندارند اعمال می‌شود.
+        </p>
+
+        <div class="field">
+          <label>حالت پیش‌فرض</label>
+          <div class="mode-row" id="globalMode" role="radiogroup">
+            <button type="button" class="chip" data-mode="auto">خودکار</button>
+            <button type="button" class="chip" data-mode="ltr">
+              همیشه LTR
+            </button>
+            <button type="button" class="chip" data-mode="rtl">
+              همیشه RTL
+            </button>
+            <button type="button" class="chip" data-mode="off">خاموش</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <label for="globalThreshold">آستانهٔ تشخیص RTL</label>
+            <span id="globalThresholdVal" class="val">۴۰٪</span>
+          </div>
+          <input
+            type="range"
+            id="globalThreshold"
+            min="10"
+            max="90"
+            step="5"
+            value="40"
+          />
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <label for="globalMinChars">حداقل حروف قوی</label>
+            <span id="globalMinCharsVal" class="val">۳</span>
+          </div>
+          <input
+            type="range"
+            id="globalMinChars"
+            min="1"
+            max="12"
+            step="1"
+            value="3"
+          />
+        </div>
+
+        <button type="button" class="primary" id="saveGlobal">
+          ذخیرهٔ پیش‌فرض سراسری
+        </button>
+        <p class="status" id="globalStatus" aria-live="polite"></p>
+      </section>
+
+      <section class="card">
+        <h2>تنظیمات اختصاصی سایت‌ها</h2>
+        <p class="desc">سایت‌هایی که برایشان حالت جداگانه ذخیره کرده‌اید.</p>
+        <div id="hostList" class="host-list"></div>
+        <button type="button" class="danger-outline" id="clearAllHosts">
+          حذف همهٔ تنظیمات اختصاصی
+        </button>
+      </section>
+
+      <section class="card">
+        <h2>میانبر صفحه‌کلید</h2>
+        <p class="desc">
+          با فشردن میانبر، حالت جهت برای سایت فعلی بین
+          <b>خودکار → LTR → RTL → خاموش</b> می‌چرخد.
+        </p>
+        <p class="shortcut-box">
+          پیش‌فرض: <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd>
+        </p>
+        <a class="link" href="chrome://extensions/shortcuts" id="openShortcuts">
+          تغییر میانبر در تنظیمات کروم →
+        </a>
+      </section>
+
+      <footer class="page-footer">
+        <span>نسخه ۲.۲.۰</span>
+        <span>·</span>
+        <span>تشخیص هوشمند RTL/LTR</span>
+      </footer>
+    </div>
+    <script src="options.js"></script>
+  </body>
+</html>

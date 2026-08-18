@@ -6,6 +6,8 @@ const hostLabel = document.getElementById("hostLabel");
 const scopeHost = document.getElementById("scopeHost");
 const thresholdRange = document.getElementById("thresholdRange");
 const thresholdValue = document.getElementById("thresholdValue");
+const minCharsRange = document.getElementById("minCharsRange");
+const minCharsValue = document.getElementById("minCharsValue");
 const applyAllHosts = document.getElementById("applyAllHosts");
 const resetHostBtn = document.getElementById("resetHost");
 const statusLine = document.getElementById("statusLine");
@@ -20,13 +22,16 @@ function toPersianDigits(n) {
 
 function setStatus(text) {
   statusLine.textContent = text;
-  if (text) setTimeout(() => { if (statusLine.textContent === text) statusLine.textContent = ""; }, 2500);
+  if (text) {
+    setTimeout(() => {
+      if (statusLine.textContent === text) statusLine.textContent = "";
+    }, 2500);
+  }
 }
 
 function paintModeSelection(mode) {
   for (const btn of modeButtons) {
-    const selected = btn.dataset.mode === mode;
-    btn.setAttribute("aria-checked", String(selected));
+    btn.setAttribute("aria-checked", String(btn.dataset.mode === mode));
   }
 }
 
@@ -36,12 +41,21 @@ function paintThreshold(threshold) {
   thresholdValue.textContent = `${toPersianDigits(pct)}٪`;
 }
 
+function paintMinChars(n) {
+  minCharsRange.value = String(n);
+  minCharsValue.textContent = toPersianDigits(n);
+}
+
 async function getStoredState() {
-  const [{ smartDirectionDefaults }, { smartDirectionHosts }] = await Promise.all([
-    chrome.storage.sync.get("smartDirectionDefaults"),
-    chrome.storage.local.get("smartDirectionHosts"),
-  ]);
-  const globalDefaults = { ...DEFAULT_SETTINGS, ...(smartDirectionDefaults || {}) };
+  const [{ smartDirectionDefaults }, { smartDirectionHosts }] =
+    await Promise.all([
+      chrome.storage.sync.get("smartDirectionDefaults"),
+      chrome.storage.local.get("smartDirectionHosts"),
+    ]);
+  const globalDefaults = {
+    ...DEFAULT_SETTINGS,
+    ...(smartDirectionDefaults || {}),
+  };
   const hosts = smartDirectionHosts || {};
   const override = hosts[host];
   return {
@@ -53,20 +67,30 @@ async function getStoredState() {
 }
 
 async function saveHostOverride(partial) {
-  const { smartDirectionHosts } = await chrome.storage.local.get("smartDirectionHosts");
+  const { smartDirectionHosts } = await chrome.storage.local.get(
+    "smartDirectionHosts",
+  );
   const hosts = smartDirectionHosts || {};
   hosts[host] = { ...(hosts[host] || {}), ...partial };
   await chrome.storage.local.set({ smartDirectionHosts: hosts });
 }
 
 async function saveGlobalDefaults(partial) {
-  const { smartDirectionDefaults } = await chrome.storage.sync.get("smartDirectionDefaults");
-  const merged = { ...DEFAULT_SETTINGS, ...(smartDirectionDefaults || {}), ...partial };
+  const { smartDirectionDefaults } = await chrome.storage.sync.get(
+    "smartDirectionDefaults",
+  );
+  const merged = {
+    ...DEFAULT_SETTINGS,
+    ...(smartDirectionDefaults || {}),
+    ...partial,
+  };
   await chrome.storage.sync.set({ smartDirectionDefaults: merged });
 }
 
 async function clearHostOverride() {
-  const { smartDirectionHosts } = await chrome.storage.local.get("smartDirectionHosts");
+  const { smartDirectionHosts } = await chrome.storage.local.get(
+    "smartDirectionHosts",
+  );
   const hosts = smartDirectionHosts || {};
   delete hosts[host];
   await chrome.storage.local.set({ smartDirectionHosts: hosts });
@@ -75,11 +99,15 @@ async function clearHostOverride() {
 async function notifyActiveTab() {
   if (!activeTab?.id) return;
   try {
-    await chrome.tabs.sendMessage(activeTab.id, { type: "smart-direction:apply-now" });
+    await chrome.tabs.sendMessage(activeTab.id, {
+      type: "smart-direction:apply-now",
+    });
   } catch {
-    // ممکن است در این تب content script نصب نشده باشد (مثلاً chrome://)
+    // content script ممکن است در این تب نباشد
   }
-  chrome.runtime.sendMessage({ type: "smart-direction:refresh-badge" }).catch(() => {});
+  chrome.runtime
+    .sendMessage({ type: "smart-direction:refresh-badge" })
+    .catch(() => {});
 }
 
 async function refresh() {
@@ -87,6 +115,7 @@ async function refresh() {
   hasHostOverride = state.hasOverride;
   paintModeSelection(state.effective.mode);
   paintThreshold(state.effective.threshold);
+  paintMinChars(state.effective.minStrongChars ?? 3);
   resetHostBtn.style.visibility = hasHostOverride ? "visible" : "hidden";
   applyAllHosts.checked = false;
 }
@@ -105,6 +134,7 @@ async function init() {
   if (!host) {
     modeButtons.forEach((b) => (b.disabled = true));
     thresholdRange.disabled = true;
+    minCharsRange.disabled = true;
     applyAllHosts.disabled = true;
     return;
   }
@@ -144,6 +174,23 @@ thresholdRange.addEventListener("change", async () => {
   }
   await notifyActiveTab();
   setStatus("آستانه به‌روزرسانی شد.");
+});
+
+minCharsRange.addEventListener("input", () => {
+  minCharsValue.textContent = toPersianDigits(Number(minCharsRange.value));
+});
+
+minCharsRange.addEventListener("change", async () => {
+  if (!host) return;
+  const minStrongChars = Number(minCharsRange.value);
+  if (applyAllHosts.checked) {
+    await saveGlobalDefaults({ minStrongChars });
+    await clearHostOverride();
+  } else {
+    await saveHostOverride({ minStrongChars });
+  }
+  await notifyActiveTab();
+  setStatus("حداقل حروف قوی به‌روزرسانی شد.");
 });
 
 resetHostBtn.addEventListener("click", async () => {
