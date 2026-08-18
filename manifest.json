@@ -3,7 +3,6 @@
   "name": "Smart Direction — تشخیص هوشمند RTL/LTR",
   "version": "2.0.0",
   "description": "جهت متن (راست‌به‌چپ یا چپ‌به‌راست) را بر اساس محتوای واقعی هر بخش از صفحه، به‌صورت هوشمند تشخیص می‌دهد و کدهای برنامه‌نویسی را همیشه چپ‌به‌راست نگه می‌دارد.",
-  "default_locale": "fa",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": ["<all_urls>"],
   "background": {
