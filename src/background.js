@@ -1,5 +1,8 @@
 /**
- * Smart Direction — service worker (v2.2)
+ * Smart Direction — service worker (v2.3)
+ * - تنظیم پیش‌فرض هنگام نصب
+ * - به‌روزرسانی بَج آیکون
+ * - میانبر Alt+Shift+D برای چرخش حالت + toast
  */
 
 const DEFAULT_SETTINGS = {
@@ -8,12 +11,21 @@ const DEFAULT_SETTINGS = {
   minStrongChars: 3,
 };
 
-const MODES = ["auto", "ltr", "rtl", "off"];
-const BADGE_TEXT = { auto: "A", ltr: "L", rtl: "R", off: "" };
+const MODES = ["auto", "ltr", "rtl", "browser", "off"];
+
+const BADGE_TEXT = {
+  auto: "A",
+  ltr: "L",
+  rtl: "R",
+  browser: "B",
+  off: "",
+};
+
 const BADGE_COLOR = {
   auto: "#2F7D6E",
   ltr: "#3B6CB4",
   rtl: "#B4553B",
+  browser: "#7A5C9E",
   off: "#8A8A8A",
 };
 
@@ -24,12 +36,13 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   if (!smartDirectionDefaults) {
     await chrome.storage.sync.set({ smartDirectionDefaults: DEFAULT_SETTINGS });
   }
-  // در نصب اولیه یا به‌روزرسانی، badge را برای تب‌های باز تنظیم کن
   if (details.reason === "install" || details.reason === "update") {
-    const tabs = await chrome.tabs.query({});
-    for (const tab of tabs) {
-      if (tab.id && tab.url) updateBadge(tab.id, tab.url);
-    }
+    try {
+      const tabs = await chrome.tabs.query({});
+      for (const tab of tabs) {
+        if (tab.id && tab.url) updateBadge(tab.id, tab.url);
+      }
+    } catch {}
   }
 });
 
@@ -50,7 +63,10 @@ async function effectiveModeForHost(host) {
 
 async function updateBadge(tabId, url) {
   try {
-    if (!url || /^(chrome|chrome-extension|about|edge|brave):/i.test(url)) {
+    if (
+      !url ||
+      /^(chrome|chrome-extension|about|edge|brave|devtools):/i.test(url)
+    ) {
       await chrome.action.setBadgeText({ tabId, text: "" });
       return;
     }
@@ -92,7 +108,6 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
   } catch {}
 });
 
-/** چرخش حالت برای دامنهٔ تب فعال */
 async function cycleModeForTab(tab) {
   if (!tab?.id || !tab.url) return;
   let host;
@@ -115,15 +130,16 @@ async function cycleModeForTab(tab) {
   const hosts = smartDirectionHosts || {};
   const current = (hosts[host] && hosts[host].mode) || globalDefaults.mode;
   const idx = MODES.indexOf(current);
-  const next = MODES[(idx + 1) % MODES.length];
+  const next = MODES[(idx === -1 ? 0 : idx + 1) % MODES.length];
 
   hosts[host] = { ...(hosts[host] || {}), mode: next };
   await chrome.storage.local.set({ smartDirectionHosts: hosts });
 
-  // اعمال فوری روی تب
   try {
     await chrome.tabs.sendMessage(tab.id, {
       type: "smart-direction:apply-now",
+      showToast: true,
+      mode: next,
     });
   } catch {}
   await updateBadge(tab.id, tab.url);

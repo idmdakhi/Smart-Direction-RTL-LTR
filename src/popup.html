@@ -41,7 +41,12 @@
             <span class="mode-name">همیشه RTL</span>
             <span class="mode-hint">راست‌به‌چپ</span>
           </button>
-          <button type="button" class="mode-btn" data-mode="off">
+          <button type="button" class="mode-btn" data-mode="browser">
+            <span class="mode-dot mode-dot--browser"></span>
+            <span class="mode-name">dir=auto</span>
+            <span class="mode-hint">خودکار مرورگر</span>
+          </button>
+          <button type="button" class="mode-btn mode-btn--wide" data-mode="off">
             <span class="mode-dot mode-dot--off"></span>
             <span class="mode-name">خاموش</span>
             <span class="mode-hint">دست‌نخورده</span>
@@ -71,10 +76,7 @@
         </p>
       </section>
 
-      <section
-        class="threshold-section"
-        style="border-top: none; padding-top: 4px"
-      >
+      <section class="threshold-section threshold-section--tight">
         <div class="threshold-label">
           <span>حداقل حروف قوی</span>
           <span class="threshold-value" id="minCharsValue">۳</span>
@@ -87,10 +89,7 @@
           step="1"
           value="3"
         />
-        <p class="hint">
-          کمتر از این تعداد حروف قوی → جهت تغییر نمی‌کند (جلوگیری از تصمیم‌گیری
-          روی متن خیلی کوتاه).
-        </p>
+        <p class="hint">کمتر از این تعداد حروف قوی → جهت تغییر نمی‌کند.</p>
       </section>
 
       <section class="footer-actions">
@@ -104,6 +103,12 @@
       </section>
 
       <p class="status" id="statusLine" aria-live="polite"></p>
+
+      <p class="options-link-wrap">
+        <a href="#" id="openOptions" class="options-link"
+          >تنظیمات پیشرفته و مدیریت سایت‌ها ←</a
+        >
+      </p>
     </main>
 
     <script src="popup.js"></script>

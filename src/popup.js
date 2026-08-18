@@ -11,6 +11,7 @@ const minCharsValue = document.getElementById("minCharsValue");
 const applyAllHosts = document.getElementById("applyAllHosts");
 const resetHostBtn = document.getElementById("resetHost");
 const statusLine = document.getElementById("statusLine");
+const openOptions = document.getElementById("openOptions");
 
 let activeTab = null;
 let host = "";
@@ -102,9 +103,7 @@ async function notifyActiveTab() {
     await chrome.tabs.sendMessage(activeTab.id, {
       type: "smart-direction:apply-now",
     });
-  } catch {
-    // content script ممکن است در این تب نباشد
-  }
+  } catch {}
   chrome.runtime
     .sendMessage({ type: "smart-direction:refresh-badge" })
     .catch(() => {});
@@ -199,6 +198,11 @@ resetHostBtn.addEventListener("click", async () => {
   await refresh();
   await notifyActiveTab();
   setStatus("تنظیم اختصاصی این سایت حذف شد.");
+});
+
+openOptions.addEventListener("click", (e) => {
+  e.preventDefault();
+  chrome.runtime.openOptionsPage();
 });
 
 init();

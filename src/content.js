@@ -1,9 +1,8 @@
 /**
- * Smart Direction — content script (v2.1)
- * ---------------------------------------------------------------
+ * Smart Direction — content script (v2.3)
  * تشخیص جهت بر اساس حروف قوی RTL/LTR، اعمال با ویژگی dir،
  * نگه‌داشتن کد همیشه LTR، پردازش کامنت‌های فارسی داخل کد،
- * پشتیبانی از Shadow DOM باز، و MutationObserver هوشمند.
+ * پشتیبانی از Shadow DOM باز، حالت dir=auto، و toast میانبر.
  */
 
 (() => {
@@ -15,11 +14,14 @@
     minStrongChars: 3,
   };
 
-  // حروف قوی RTL (عبری، عربی، فارسی، اردو و ...)
+  // حروف قوی RTL — عبری، عربی (فارسی/اردو/پشتو/سندی/کردی)، سریانی،
+  // ثانا، N’Ko، سامری، مندایی و فرم‌های ارائه‌ای عربی
   const RTL_STRONG =
-    /[\u0590-\u05FF\u0600-\u06FF\u0700-\u074F\u0750-\u077F\u08A0-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g;
-  // حروف قوی LTR (لاتین، یونانی، سیریلیک و ...)
-  const LTR_STRONG = /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF]/g;
+    /[\u0590-\u05FF\u0600-\u06FF\u0700-\u074F\u0750-\u077F\u0780-\u07BF\u07C0-\u07FF\u0800-\u083F\u0840-\u085F\u0860-\u086F\u0870-\u089F\u08A0-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g;
+
+  // حروف قوی LTR
+  const LTR_STRONG =
+    /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u0500-\u052F]/g;
 
   const BLOCK_SELECTOR = [
     "p",
@@ -83,6 +85,14 @@
     "MATH",
   ]);
 
+  const MODE_LABELS = {
+    auto: "خودکار (هوشمند)",
+    ltr: "همیشه LTR",
+    rtl: "همیشه RTL",
+    browser: "خودکار مرورگر (dir=auto)",
+    off: "خاموش",
+  };
+
   let settings = { ...DEFAULT_SETTINGS };
   /** @type {WeakMap<Element, string>} */
   const lastSignature = new WeakMap();
@@ -108,14 +118,12 @@
         chrome.storage.sync.get("smartDirectionDefaults"),
         chrome.storage.local.get("smartDirectionHosts"),
       ]);
-
       const globalDefaults = {
         ...DEFAULT_SETTINGS,
         ...(smartDirectionDefaults || {}),
       };
       const hosts = (hostMap && hostMap.smartDirectionHosts) || {};
       const hostOverride = hosts[currentHost()];
-
       settings = { ...globalDefaults, ...(hostOverride || {}) };
     } catch {
       settings = { ...DEFAULT_SETTINGS };
@@ -162,9 +170,7 @@
     const rtlCount = rtlMatches ? rtlMatches.length : 0;
     const ltrCount = ltrMatches ? ltrMatches.length : 0;
     const total = rtlCount + ltrCount;
-
     if (total < settings.minStrongChars) return null;
-
     const ratio = rtlCount / total;
     return ratio >= settings.threshold ? "rtl" : "ltr";
   }
@@ -190,18 +196,13 @@
 
     if (settings.mode === "off") {
       clearDir(el);
-      // پاک کردن unicode-bidi اضافه شده
-      if (el.style.unicodeBidi === "plaintext") {
-        el.style.unicodeBidi = "";
-      }
+      if (el.style.unicodeBidi === "plaintext") el.style.unicodeBidi = "";
       return;
     }
 
-    // بلوک کد همیشه LTR + plaintext
     if (isCodeElement(el)) {
       setDir(el, "ltr");
       el.style.unicodeBidi = "plaintext";
-      // تلاش برای RTL کردن کامنت‌های فارسی داخل کد
       processCodeComments(el);
       return;
     }
@@ -210,6 +211,13 @@
       const text = (el.textContent || "").trim();
       if (text.length === 0) return;
       setDir(el, settings.mode);
+      return;
+    }
+
+    if (settings.mode === "browser") {
+      const text = (el.textContent || "").trim();
+      if (text.length === 0) return;
+      setDir(el, "auto");
       return;
     }
 
@@ -227,10 +235,6 @@
     }
   }
 
-  /**
-   * داخل بلوک‌های کد، نودهای متنی که عمدتاً فارسی/عربی هستند
-   * را با یک span کوچک و dir=rtl می‌پیچد (بدون خراب کردن سینتکس).
-   */
   function processCodeComments(codeEl) {
     if (settings.mode === "off") return;
 
@@ -239,7 +243,6 @@
         const parent = node.parentElement;
         if (!parent) return NodeFilter.FILTER_REJECT;
         if (SKIP_TAGS.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
-        // فقط متن‌هایی که به نظر کامنت می‌آیند یا حروف RTL قوی دارند
         const t = node.textContent || "";
         if (t.trim().length < 4) return NodeFilter.FILTER_REJECT;
         const rtl = (t.match(RTL_STRONG) || []).length;
@@ -258,8 +261,6 @@
     for (const textNode of nodesToWrap) {
       const parent = textNode.parentElement;
       if (!parent || parent.dataset.sdComment === "1") continue;
-
-      // اگر قبلاً wrap شده، رد شو
       if (parent.tagName === "SPAN" && parent.getAttribute("dir") === "rtl")
         continue;
 
@@ -279,7 +280,6 @@
   function collectFromRoot(root, candidates) {
     if (!root) return;
 
-    // خود ریشه اگر بلوک برگ باشد
     if (
       root instanceof Element &&
       root.matches?.(BLOCK_SELECTOR) &&
@@ -297,7 +297,6 @@
       const codeBlocks = root.querySelectorAll?.(CODE_SELECTOR) || [];
       for (const el of codeBlocks) candidates.push(el);
 
-      // برگ‌های div/span که مستقیماً متن دارند
       const generics = root.querySelectorAll?.("div, span") || [];
       for (const el of generics) {
         if (
@@ -308,16 +307,13 @@
         }
       }
 
-      // Shadow roots باز
       const all = root.querySelectorAll?.("*") || [];
       for (const el of all) {
         if (el.shadowRoot) {
           collectFromRoot(el.shadowRoot, candidates);
         }
       }
-    } catch {
-      // برخی shadow یا cross-origin ممکن است خطا بدهند
-    }
+    } catch {}
   }
 
   function collectCandidates(root) {
@@ -332,9 +328,7 @@
     for (const el of candidates) {
       try {
         processElement(el);
-      } catch {
-        // المان حذف‌شده یا غیرقابل‌دسترسی
-      }
+      } catch {}
     }
   }
 
@@ -402,19 +396,64 @@
   }
 
   // ------------------------------------------------------------------
+  // Toast
+  // ------------------------------------------------------------------
+
+  function showToast(mode) {
+    const old = document.getElementById("smart-direction-toast");
+    if (old) old.remove();
+
+    const toast = document.createElement("div");
+    toast.id = "smart-direction-toast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    toast.textContent = `Smart Direction: ${MODE_LABELS[mode] || mode}`;
+
+    Object.assign(toast.style, {
+      position: "fixed",
+      bottom: "24px",
+      left: "50%",
+      transform: "translateX(-50%) translateY(12px)",
+      background: "rgba(27, 35, 33, 0.92)",
+      color: "#f6f5f1",
+      padding: "10px 18px",
+      borderRadius: "10px",
+      fontSize: "13px",
+      fontFamily: '"Segoe UI", Tahoma, system-ui, sans-serif',
+      zIndex: "2147483647",
+      boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+      opacity: "0",
+      transition: "opacity 0.2s ease, transform 0.2s ease",
+      pointerEvents: "none",
+      direction: "rtl",
+      maxWidth: "90vw",
+      textAlign: "center",
+    });
+
+    (document.body || document.documentElement).appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.style.opacity = "1";
+      toast.style.transform = "translateX(-50%) translateY(0)";
+    });
+
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transform = "translateX(-50%) translateY(8px)";
+      setTimeout(() => toast.remove(), 250);
+    }, 2000);
+  }
+
+  // ------------------------------------------------------------------
   // اجرا و ارتباط
   // ------------------------------------------------------------------
 
   function reapplyEverything() {
-    // پاک‌سازی dirهای قبلی در حالت off
     if (settings.mode === "off") {
       document.querySelectorAll("[dir]").forEach((el) => {
-        // فقط آن‌هایی که احتمالاً ما گذاشته‌ایم را پاک نکن اگر سایت خودش dir دارد؛
-        // اما برای سادگی، clear می‌کنیم و سایت می‌تواند دوباره تنظیم کند.
         clearDir(el);
         if (el.style.unicodeBidi === "plaintext") el.style.unicodeBidi = "";
       });
-      // حذف spanهای کامنتی که خودمان اضافه کرده‌ایم
       document.querySelectorAll("span[data-sd-comment='1']").forEach((span) => {
         const parent = span.parentNode;
         if (parent) {
@@ -423,8 +462,6 @@
         }
       });
     }
-
-    lastSignature.clear?.(); // WeakMap clear ندارد، پس فقط process می‌کنیم
     processRoot(document.body || document.documentElement);
   }
 
@@ -444,6 +481,9 @@
     if (message?.type === "smart-direction:apply-now") {
       loadSettings().then(() => {
         reapplyEverything();
+        if (message.showToast && message.mode) {
+          showToast(message.mode);
+        }
         sendResponse({ ok: true, host: currentHost(), mode: settings.mode });
       });
       return true;

@@ -34,7 +34,15 @@ function paintMinChars(n) {
 }
 
 function modeLabel(m) {
-  return { auto: "خودکار", ltr: "LTR", rtl: "RTL", off: "خاموش" }[m] || m;
+  return (
+    {
+      auto: "خودکار",
+      ltr: "LTR",
+      rtl: "RTL",
+      browser: "dir=auto",
+      off: "خاموش",
+    }[m] || m
+  );
 }
 
 async function loadGlobal() {
@@ -122,7 +130,6 @@ clearAllHostsBtn.addEventListener("click", async () => {
 
 openShortcuts.addEventListener("click", (e) => {
   e.preventDefault();
-  // کروم اجازهٔ باز کردن مستقیم chrome:// از صفحهٔ extension را می‌دهد
   chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
 });
 

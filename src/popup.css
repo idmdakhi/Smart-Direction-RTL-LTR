@@ -5,6 +5,7 @@
   --auto: #2f7d6e;
   --ltr: #3b6cb4;
   --rtl: #b4553b;
+  --browser: #7a5c9e;
   --off: #8a8a8a;
   --radius: 10px;
   font-family:
@@ -75,7 +76,7 @@ main {
   padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .mode-grid {
@@ -110,6 +111,9 @@ main {
   border-color: var(--ink);
   box-shadow: 0 0 0 1px var(--ink) inset;
 }
+.mode-btn--wide {
+  grid-column: 1 / -1;
+}
 
 .mode-dot {
   width: 9px;
@@ -124,6 +128,9 @@ main {
 }
 .mode-dot--rtl {
   background: var(--rtl);
+}
+.mode-dot--browser {
+  background: var(--browser);
 }
 .mode-dot--off {
   background: var(--off);
@@ -152,8 +159,9 @@ main {
   border-top: 1px solid var(--line);
   padding-top: 12px;
 }
-.threshold-section + .threshold-section {
-  margin-top: -4px;
+.threshold-section--tight {
+  border-top: none;
+  padding-top: 0;
 }
 .threshold-label {
   display: flex;
@@ -166,7 +174,8 @@ main {
   color: var(--auto);
   font-variant-numeric: tabular-nums;
 }
-#thresholdRange {
+#thresholdRange,
+#minCharsRange {
   width: 100%;
   accent-color: var(--auto);
 }
@@ -210,4 +219,17 @@ main {
   font-size: 10.5px;
   color: #78756c;
   min-height: 12px;
+}
+
+.options-link-wrap {
+  margin: 0;
+  text-align: center;
+}
+.options-link {
+  font-size: 11px;
+  color: var(--ltr);
+  text-decoration: none;
+}
+.options-link:hover {
+  text-decoration: underline;
 }

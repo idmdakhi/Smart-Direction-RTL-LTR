@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Smart Direction — تشخیص هوشمند RTL/LTR",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "جهت متن هر بخش از صفحه را بر اساس محتوای واقعی تشخیص می‌دهد و کد را همیشه LTR نگه می‌دارد. پشتیبانی از فارسی، عربی، اردو، پشتو و سایر خطوط RTL.",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": ["<all_urls>"],
@@ -35,7 +35,7 @@
         "default": "Alt+Shift+D",
         "mac": "Alt+Shift+D"
       },
-      "description": "چرخش حالت جهت (خودکار ← LTR ← RTL ← خاموش)"
+      "description": "چرخش حالت جهت (خودکار ← LTR ← RTL ← dir=auto ← خاموش)"
     }
   },
   "icons": {

@@ -35,6 +35,9 @@
             <button type="button" class="chip" data-mode="rtl">
               همیشه RTL
             </button>
+            <button type="button" class="chip" data-mode="browser">
+              dir=auto
+            </button>
             <button type="button" class="chip" data-mode="off">خاموش</button>
           </div>
         </div>
@@ -88,18 +91,19 @@
         <h2>میانبر صفحه‌کلید</h2>
         <p class="desc">
           با فشردن میانبر، حالت جهت برای سایت فعلی بین
-          <b>خودکار → LTR → RTL → خاموش</b> می‌چرخد.
+          <b>خودکار → LTR → RTL → dir=auto → خاموش</b> می‌چرخد و یک اعلان کوتاه
+          نمایش داده می‌شود.
         </p>
         <p class="shortcut-box">
           پیش‌فرض: <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd>
         </p>
-        <a class="link" href="chrome://extensions/shortcuts" id="openShortcuts">
-          تغییر میانبر در تنظیمات کروم →
-        </a>
+        <a class="link" href="#" id="openShortcuts"
+          >تغییر میانبر در تنظیمات کروم →</a
+        >
       </section>
 
       <footer class="page-footer">
-        <span>نسخه ۲.۲.۰</span>
+        <span>نسخه ۲.۳.۰</span>
         <span>·</span>
         <span>تشخیص هوشمند RTL/LTR</span>
       </footer>
