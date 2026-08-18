@@ -135,3 +135,11 @@ openShortcuts.addEventListener("click", (e) => {
 
 loadGlobal();
 loadHosts();
+
+try {
+  const manifest = chrome.runtime.getManifest();
+  const el = document.getElementById("footerVersion");
+  if (el && manifest?.version) {
+    el.textContent = `نسخه ${manifest.version}`;
+  }
+} catch {}

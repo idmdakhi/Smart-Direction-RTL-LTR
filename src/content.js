@@ -462,6 +462,8 @@
         }
       });
     }
+    if (settings.mode === "off") {
+    }
     processRoot(document.body || document.documentElement);
   }
 

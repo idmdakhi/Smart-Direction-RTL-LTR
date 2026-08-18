@@ -56,5 +56,19 @@ chmod +x pack.sh
 # خروجی
 
 ```
-smart-direction-v2.3.0.zip
+smart-direction-v0.3.0.zip
+```
+
+---
+
+# اگر execution policy محدودیت دارد (یک‌بار):
+
+```shell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+.\pack.ps1
+
+# یا
+
+.\pack.ps1 -Version 2.3.0
 ```

@@ -19,7 +19,7 @@ else
 fi
 
 if [[ -z "$VERSION" ]]; then
-  echo "❌ نتوانستم نسخه را از manifest.json بخوانم. نسخه را دستی بدهید: ./pack.sh 2.3.0"
+  echo "❌ نتوانستم نسخه را از manifest.json بخوانم. نسخه را دستی بدهید: ./pack.sh 0.3.0"
   exit 1
 fi
 
