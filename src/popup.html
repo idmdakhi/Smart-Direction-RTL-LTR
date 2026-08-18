@@ -15,10 +15,20 @@
       <div class="title-block">
         <h1>Smart Direction</h1>
         <p class="host" id="hostLabel">—</p>
+        <span class="badge-override" id="overrideBadge" style="display: none"
+          >⚡ اختصاصی</span
+        >
       </div>
     </header>
 
     <main>
+      <!-- وضعیت فعلی -->
+      <section class="status-bar" id="statusBar">
+        <span class="status-mode" id="currentModeDisplay">خودکار</span>
+        <span class="status-count" id="processedCount">۰ بلوک پردازش شد</span>
+      </section>
+
+      <!-- انتخاب حالت -->
       <section class="mode-section" aria-label="انتخاب حالت">
         <div
           class="mode-grid"
@@ -41,12 +51,7 @@
             <span class="mode-name">همیشه RTL</span>
             <span class="mode-hint">راست‌به‌چپ</span>
           </button>
-          <button type="button" class="mode-btn" data-mode="browser">
-            <span class="mode-dot mode-dot--browser"></span>
-            <span class="mode-name">dir=auto</span>
-            <span class="mode-hint">خودکار مرورگر</span>
-          </button>
-          <button type="button" class="mode-btn mode-btn--wide" data-mode="off">
+          <button type="button" class="mode-btn" data-mode="off">
             <span class="mode-dot mode-dot--off"></span>
             <span class="mode-name">خاموش</span>
             <span class="mode-hint">دست‌نخورده</span>
@@ -57,6 +62,7 @@
         </p>
       </section>
 
+      <!-- آستانه تشخیص -->
       <section class="threshold-section">
         <div class="threshold-label">
           <span>آستانهٔ تشخیص RTL</span>
@@ -71,46 +77,25 @@
           value="40"
         />
         <p class="hint">
-          اگر بیش از این درصد از حروفِ قوی یک بلوک راست‌به‌چپ باشند، آن بلوک RTL
+          اگر بیش از این درصد از حروفِ یک بلوک، راست‌به‌چپ باشند، آن بلوک RTL
           می‌شود.
         </p>
       </section>
 
-      <section class="threshold-section threshold-section--tight">
-        <div class="threshold-label">
-          <span>حداقل حروف قوی</span>
-          <span class="threshold-value" id="minCharsValue">۳</span>
-        </div>
-        <input
-          type="range"
-          id="minCharsRange"
-          min="1"
-          max="12"
-          step="1"
-          value="3"
-        />
-        <p class="hint">کمتر از این تعداد حروف قوی → جهت تغییر نمی‌کند.</p>
-      </section>
-
+      <!-- اقدامات پایین -->
       <section class="footer-actions">
         <label class="global-toggle">
           <input type="checkbox" id="applyAllHosts" />
           <span>این حالت را برای همهٔ سایت‌ها پیش‌فرض کن</span>
         </label>
         <button type="button" class="reset-btn" id="resetHost">
-          حذف تنظیم اختصاصی این سایت
+          🗑️ حذف تنظیم اختصاصی این سایت
         </button>
       </section>
 
       <p class="status" id="statusLine" aria-live="polite"></p>
-
-      <p class="options-link-wrap">
-        <a href="#" id="openOptions" class="options-link"
-          >تنظیمات پیشرفته و مدیریت سایت‌ها ←</a
-        >
-      </p>
     </main>
 
-    <script src="popup.js"></script>
+    <script type="module" src="popup.js"></script>
   </body>
 </html>

@@ -5,7 +5,6 @@
   --auto: #2f7d6e;
   --ltr: #3b6cb4;
   --rtl: #b4553b;
-  --browser: #7a5c9e;
   --off: #8a8a8a;
   --radius: 10px;
   font-family:
@@ -18,12 +17,13 @@
 
 body {
   margin: 0;
-  width: 300px;
+  width: 320px;
   background: var(--paper);
   color: var(--ink);
   font-size: 13px;
 }
 
+/* ===== هدر ===== */
 .header {
   display: flex;
   align-items: center;
@@ -58,6 +58,9 @@ body {
   opacity: 0.9;
 }
 
+.title-block {
+  flex: 1;
+}
 .title-block h1 {
   margin: 0;
   font-size: 14px;
@@ -71,12 +74,39 @@ body {
   text-align: right;
   unicode-bidi: plaintext;
 }
+.badge-override {
+  font-size: 10px;
+  background: #f0b400;
+  color: #1b2321;
+  padding: 1px 6px;
+  border-radius: 12px;
+  margin-right: 6px;
+}
 
+/* ===== وضعیت ===== */
+.status-bar {
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  border: 1px solid var(--line);
+}
+.status-mode {
+  font-weight: 600;
+  color: var(--auto);
+}
+.status-count {
+  color: #78756c;
+}
+
+/* ===== حالت‌ها ===== */
 main {
   padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .mode-grid {
@@ -111,8 +141,10 @@ main {
   border-color: var(--ink);
   box-shadow: 0 0 0 1px var(--ink) inset;
 }
-.mode-btn--wide {
-  grid-column: 1 / -1;
+.mode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .mode-dot {
@@ -128,9 +160,6 @@ main {
 }
 .mode-dot--rtl {
   background: var(--rtl);
-}
-.mode-dot--browser {
-  background: var(--browser);
 }
 .mode-dot--off {
   background: var(--off);
@@ -155,13 +184,10 @@ main {
   unicode-bidi: plaintext;
 }
 
+/* ===== آستانه ===== */
 .threshold-section {
   border-top: 1px solid var(--line);
   padding-top: 12px;
-}
-.threshold-section--tight {
-  border-top: none;
-  padding-top: 0;
 }
 .threshold-label {
   display: flex;
@@ -174,8 +200,7 @@ main {
   color: var(--auto);
   font-variant-numeric: tabular-nums;
 }
-#thresholdRange,
-#minCharsRange {
+#thresholdRange {
   width: 100%;
   accent-color: var(--auto);
 }
@@ -186,6 +211,7 @@ main {
   line-height: 1.5;
 }
 
+/* ===== اقدامات ===== */
 .footer-actions {
   border-top: 1px solid var(--line);
   padding-top: 12px;
@@ -213,23 +239,15 @@ main {
 .reset-btn:hover {
   color: #7a3626;
 }
+.reset-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  text-decoration: none;
+}
 
 .status {
   margin: 0;
   font-size: 10.5px;
   color: #78756c;
   min-height: 12px;
-}
-
-.options-link-wrap {
-  margin: 0;
-  text-align: center;
-}
-.options-link {
-  font-size: 11px;
-  color: var(--ltr);
-  text-decoration: none;
-}
-.options-link:hover {
-  text-decoration: underline;
 }
