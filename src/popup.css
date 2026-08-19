@@ -7,7 +7,8 @@
   --rtl: #b4553b;
   --off: #8a8a8a;
   --radius: 10px;
-  font-family: "Segoe UI", Tahoma, "IRANSansWeb", "Vazirmatn", system-ui, sans-serif;
+  font-family:
+    "Segoe UI", Tahoma, "IRANSansWeb", "Vazirmatn", system-ui, sans-serif;
 }
 
 * {
@@ -16,12 +17,13 @@
 
 body {
   margin: 0;
-  width: 300px;
+  width: 320px;
   background: var(--paper);
   color: var(--ink);
   font-size: 13px;
 }
 
+/* ===== هدر ===== */
 .header {
   display: flex;
   align-items: center;
@@ -44,10 +46,21 @@ body {
   font-weight: 700;
   overflow: hidden;
 }
-.glyph-a { font-family: Georgia, serif; font-size: 13px; }
-.glyph-alef { font-size: 15px; }
-.glyph-arrow { font-size: 11px; opacity: 0.9; }
+.glyph-a {
+  font-family: Georgia, serif;
+  font-size: 13px;
+}
+.glyph-alef {
+  font-size: 15px;
+}
+.glyph-arrow {
+  font-size: 11px;
+  opacity: 0.9;
+}
 
+.title-block {
+  flex: 1;
+}
 .title-block h1 {
   margin: 0;
   font-size: 14px;
@@ -61,7 +74,34 @@ body {
   text-align: right;
   unicode-bidi: plaintext;
 }
+.badge-override {
+  font-size: 10px;
+  background: #f0b400;
+  color: #1b2321;
+  padding: 1px 6px;
+  border-radius: 12px;
+  margin-right: 6px;
+}
 
+/* ===== وضعیت ===== */
+.status-bar {
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  border: 1px solid var(--line);
+}
+.status-mode {
+  font-weight: 600;
+  color: var(--auto);
+}
+.status-count {
+  color: #78756c;
+}
+
+/* ===== حالت‌ها ===== */
 main {
   padding: 14px 16px 16px;
   display: flex;
@@ -86,7 +126,10 @@ main {
   background: #fff;
   cursor: pointer;
   text-align: right;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
 }
 .mode-btn:hover {
   border-color: #c3bfb3;
@@ -98,16 +141,29 @@ main {
   border-color: var(--ink);
   box-shadow: 0 0 0 1px var(--ink) inset;
 }
+.mode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
 
 .mode-dot {
   width: 9px;
   height: 9px;
   border-radius: 50%;
 }
-.mode-dot--auto { background: var(--auto); }
-.mode-dot--ltr { background: var(--ltr); }
-.mode-dot--rtl { background: var(--rtl); }
-.mode-dot--off { background: var(--off); }
+.mode-dot--auto {
+  background: var(--auto);
+}
+.mode-dot--ltr {
+  background: var(--ltr);
+}
+.mode-dot--rtl {
+  background: var(--rtl);
+}
+.mode-dot--off {
+  background: var(--off);
+}
 
 .mode-name {
   font-weight: 600;
@@ -128,6 +184,7 @@ main {
   unicode-bidi: plaintext;
 }
 
+/* ===== آستانه ===== */
 .threshold-section {
   border-top: 1px solid var(--line);
   padding-top: 12px;
@@ -154,6 +211,7 @@ main {
   line-height: 1.5;
 }
 
+/* ===== اقدامات ===== */
 .footer-actions {
   border-top: 1px solid var(--line);
   padding-top: 12px;
@@ -181,10 +239,36 @@ main {
 .reset-btn:hover {
   color: #7a3626;
 }
+.reset-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  text-decoration: none;
+}
 
 .status {
   margin: 0;
   font-size: 10.5px;
   color: #78756c;
   min-height: 12px;
+}
+
+/* ===== دکمه باز کردن تنظیمات ===== */
+.settings-btn {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--ltr);
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  transition: background-color 0.15s ease;
+  margin-top: 4px;
+}
+.settings-btn:hover {
+  background-color: #f0efea;
+}
+.settings-btn:active {
+  transform: scale(0.98);
 }

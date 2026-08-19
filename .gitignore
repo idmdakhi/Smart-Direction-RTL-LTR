@@ -1,0 +1,4 @@
+*.pem
+*.crx
+.pack-stage/
+smart-direction-v*.zip

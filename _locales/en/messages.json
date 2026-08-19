@@ -1,0 +1,218 @@
+{
+  "appName": {
+    "message": "Smart Direction",
+    "description": "Extension name"
+  },
+  "appDescription": {
+    "message": "Intelligent RTL/LTR detection",
+    "description": "Short description"
+  },
+  "modeAuto": {
+    "message": "Auto",
+    "description": "Auto mode"
+  },
+  "modeAutoHint": {
+    "message": "Based on content",
+    "description": "Auto mode hint"
+  },
+  "modeLtr": {
+    "message": "Always LTR",
+    "description": "Always left-to-right"
+  },
+  "modeLtrHint": {
+    "message": "Left-to-right",
+    "description": "LTR mode hint"
+  },
+  "modeRtl": {
+    "message": "Always RTL",
+    "description": "Always right-to-left"
+  },
+  "modeRtlHint": {
+    "message": "Right-to-left",
+    "description": "RTL mode hint"
+  },
+  "modeOff": {
+    "message": "Off",
+    "description": "Disabled mode"
+  },
+  "modeOffHint": {
+    "message": "Untouched",
+    "description": "Off mode hint"
+  },
+  "modeBrowser": {
+    "message": "dir=auto",
+    "description": "Browser auto mode"
+  },
+  "settingsTitle": {
+    "message": "Smart Direction Settings",
+    "description": "Options page title"
+  },
+  "settingsSubtitle": {
+    "message": "Global settings and site management",
+    "description": "Options page subtitle"
+  },
+  "globalDefaultsTitle": {
+    "message": "Global Defaults",
+    "description": "Global defaults section title"
+  },
+  "globalDefaultsDesc": {
+    "message": "These values apply to all sites without an override.",
+    "description": "Global defaults description"
+  },
+  "defaultModeLabel": {
+    "message": "Default Mode",
+    "description": "Default mode label"
+  },
+  "thresholdLabel": {
+    "message": "RTL Detection Threshold",
+    "description": "Threshold label"
+  },
+  "thresholdHint": {
+    "message": "If more than this percentage of characters in a block are RTL, that block will be set to RTL.",
+    "description": "Threshold hint"
+  },
+  "minCharsLabel": {
+    "message": "Minimum Strong Characters",
+    "description": "Minimum strong characters label"
+  },
+  "saveGlobalBtn": {
+    "message": "Save Global Defaults",
+    "description": "Save global defaults button"
+  },
+  "saved": {
+    "message": "Saved.",
+    "description": "Saved status message"
+  },
+  "hostOverridesTitle": {
+    "message": "Site-Specific Overrides",
+    "description": "Host overrides section title"
+  },
+  "hostOverridesDesc": {
+    "message": "Sites for which you have saved a separate mode.",
+    "description": "Host overrides description"
+  },
+  "noHostOverrides": {
+    "message": "No site-specific overrides saved yet.",
+    "description": "Empty host list message"
+  },
+  "hostModeLabel": {
+    "message": "Mode:",
+    "description": "Host mode label"
+  },
+  "remove": {
+    "message": "Remove",
+    "description": "Remove button"
+  },
+  "clearAllHosts": {
+    "message": "Remove All Site Overrides",
+    "description": "Clear all hosts button"
+  },
+  "confirmClearAllHosts": {
+    "message": "Remove all site-specific overrides?",
+    "description": "Confirm clear all hosts"
+  },
+  "shortcutTitle": {
+    "message": "Keyboard Shortcut",
+    "description": "Shortcut section title"
+  },
+  "shortcutDesc": {
+    "message": "Pressing the shortcut cycles through modes: Auto → LTR → RTL → dir=auto → Off and shows a brief notification.",
+    "description": "Shortcut description"
+  },
+  "shortcutDefault": {
+    "message": "Default:",
+    "description": "Shortcut default label"
+  },
+  "changeShortcut": {
+    "message": "Change shortcut in Chrome settings →",
+    "description": "Change shortcut link"
+  },
+  "version": {
+    "message": "Version",
+    "description": "Version label"
+  },
+  "footerTagline": {
+    "message": "Intelligent RTL/LTR detection",
+    "description": "Footer tagline"
+  },
+  "applyToAll": {
+    "message": "Apply this mode to all sites by default",
+    "description": "Checkbox label"
+  },
+  "removeHostOverride": {
+    "message": "🗑️ Remove override for this site",
+    "description": "Reset button text"
+  },
+  "openAdvancedSettings": {
+    "message": "⚙️ Advanced Settings (All Sites)",
+    "description": "Open options button"
+  },
+  "statusBarMode": {
+    "message": "Mode: $MODE$",
+    "description": "Current mode in status bar",
+    "placeholders": {
+      "mode": {
+        "content": "$1",
+        "example": "Auto"
+      }
+    }
+  },
+  "overrideBadge": {
+    "message": "Override",
+    "description": "Override badge text"
+  },
+  "processedCount": {
+    "message": "$COUNT$ blocks processed",
+    "description": "Processed count",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "0"
+      }
+    }
+  },
+  "scopeNotePrefix": {
+    "message": "This setting is saved only for",
+    "description": "Scope note prefix"
+  },
+  "scopeNoteSuffix": {
+    "message": "",
+    "description": "Scope note suffix (empty in English)"
+  },
+  "thisSite": {
+    "message": "this site",
+    "description": "This site placeholder"
+  },
+  "unsupportedPage": {
+    "message": "⚠️ Page not supported",
+    "description": "Unsupported page message"
+  },
+  "unsupportedPageError": {
+    "message": "⚠️ Internal or invalid page",
+    "description": "Unsupported page error"
+  },
+  "modeApplied": {
+    "message": "✅ Mode applied.",
+    "description": "Mode applied message"
+  },
+  "saveError": {
+    "message": "❌ Save error",
+    "description": "Save error message"
+  },
+  "thresholdUpdated": {
+    "message": "✅ Threshold updated.",
+    "description": "Threshold updated message"
+  },
+  "confirmRemoveOverride": {
+    "message": "Are you sure you want to remove the override for this site?",
+    "description": "Confirm remove override"
+  },
+  "overrideRemoved": {
+    "message": "✅ Override removed.",
+    "description": "Override removed message"
+  },
+  "removeError": {
+    "message": "❌ Remove error",
+    "description": "Remove error message"
+  }
+}

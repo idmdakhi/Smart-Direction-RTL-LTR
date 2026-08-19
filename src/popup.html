@@ -1,70 +1,118 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <title>Smart Direction</title>
-  <link rel="stylesheet" href="popup.css" />
-</head>
-<body>
-  <header class="header">
-    <div class="glyph" aria-hidden="true">
-      <span class="glyph-a">A</span>
-      <span class="glyph-arrow">⇄</span>
-      <span class="glyph-alef">ا</span>
-    </div>
-    <div class="title-block">
-      <h1>Smart Direction</h1>
-      <p class="host" id="hostLabel">—</p>
-    </div>
-  </header>
-
-  <main>
-    <section class="mode-section" aria-label="انتخاب حالت">
-      <div class="mode-grid" id="modeGrid" role="radiogroup" aria-label="حالت جهت‌دهی">
-        <button type="button" class="mode-btn" data-mode="auto">
-          <span class="mode-dot mode-dot--auto"></span>
-          <span class="mode-name">خودکار</span>
-          <span class="mode-hint">بر اساس محتوا</span>
-        </button>
-        <button type="button" class="mode-btn" data-mode="ltr">
-          <span class="mode-dot mode-dot--ltr"></span>
-          <span class="mode-name">همیشه LTR</span>
-          <span class="mode-hint">چپ‌به‌راست</span>
-        </button>
-        <button type="button" class="mode-btn" data-mode="rtl">
-          <span class="mode-dot mode-dot--rtl"></span>
-          <span class="mode-name">همیشه RTL</span>
-          <span class="mode-hint">راست‌به‌چپ</span>
-        </button>
-        <button type="button" class="mode-btn" data-mode="off">
-          <span class="mode-dot mode-dot--off"></span>
-          <span class="mode-name">خاموش</span>
-          <span class="mode-hint">دست‌نخورده</span>
-        </button>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Smart Direction</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="glyph" aria-hidden="true">
+        <span class="glyph-a">A</span>
+        <span class="glyph-arrow">⇄</span>
+        <span class="glyph-alef">ا</span>
       </div>
-      <p class="scope-note" id="scopeNote">این تنظیم فقط برای <b id="scopeHost">این سایت</b> ذخیره می‌شود.</p>
-    </section>
-
-    <section class="threshold-section">
-      <div class="threshold-label">
-        <span>آستانهٔ تشخیص RTL</span>
-        <span class="threshold-value" id="thresholdValue">۴۰٪</span>
+      <div class="title-block">
+        <h1 data-i18n="appName">Smart Direction</h1>
+        <p class="host" id="hostLabel">—</p>
+        <span class="badge-override" id="overrideBadge" style="display: none"
+          >⚡ <span data-i18n="overrideBadge">اختصاصی</span></span
+        >
       </div>
-      <input type="range" id="thresholdRange" min="10" max="90" step="5" value="40" />
-      <p class="hint">اگر بیش از این درصد از حروفِ یک بلوک، راست‌به‌چپ باشند، آن بلوک RTL می‌شود.</p>
-    </section>
+    </header>
 
-    <section class="footer-actions">
-      <label class="global-toggle">
-        <input type="checkbox" id="applyAllHosts" />
-        <span>این حالت را برای همهٔ سایت‌ها پیش‌فرض کن</span>
-      </label>
-      <button type="button" class="reset-btn" id="resetHost">حذف تنظیم اختصاصی این سایت</button>
-    </section>
+    <main>
+      <!-- وضعیت فعلی -->
+      <section class="status-bar" id="statusBar">
+        <span class="status-mode" id="currentModeDisplay">
+          <span data-i18n="modeAuto">خودکار</span>
+        </span>
+        <span class="status-count" id="processedCount">
+          <span data-i18n="processedCount">۰ بلوک پردازش شد</span>
+        </span>
+      </section>
 
-    <p class="status" id="statusLine" aria-live="polite"></p>
-  </main>
+      <!-- انتخاب حالت -->
+      <section class="mode-section" aria-label="انتخاب حالت">
+        <div
+          class="mode-grid"
+          id="modeGrid"
+          role="radiogroup"
+          aria-label="حالت جهت‌دهی"
+        >
+          <button type="button" class="mode-btn" data-mode="auto">
+            <span class="mode-dot mode-dot--auto"></span>
+            <span class="mode-name" data-i18n="modeAuto">خودکار</span>
+            <span class="mode-hint" data-i18n="modeAutoHint"
+              >بر اساس محتوا</span
+            >
+          </button>
+          <button type="button" class="mode-btn" data-mode="ltr">
+            <span class="mode-dot mode-dot--ltr"></span>
+            <span class="mode-name" data-i18n="modeLtr">همیشه LTR</span>
+            <span class="mode-hint" data-i18n="modeLtrHint">چپ‌به‌راست</span>
+          </button>
+          <button type="button" class="mode-btn" data-mode="rtl">
+            <span class="mode-dot mode-dot--rtl"></span>
+            <span class="mode-name" data-i18n="modeRtl">همیشه RTL</span>
+            <span class="mode-hint" data-i18n="modeRtlHint">راست‌به‌چپ</span>
+          </button>
+          <button type="button" class="mode-btn" data-mode="off">
+            <span class="mode-dot mode-dot--off"></span>
+            <span class="mode-name" data-i18n="modeOff">خاموش</span>
+            <span class="mode-hint" data-i18n="modeOffHint">دست‌نخورده</span>
+          </button>
+        </div>
+        <p class="scope-note" id="scopeNote">
+          <span data-i18n="scopeNotePrefix">این تنظیم فقط برای</span>
+          <b id="scopeHost">این سایت</b>
+          <span data-i18n="scopeNoteSuffix">ذخیره می‌شود.</span>
+        </p>
+      </section>
 
-  <script src="popup.js"></script>
-</body>
+      <!-- آستانه تشخیص -->
+      <section class="threshold-section">
+        <div class="threshold-label">
+          <span data-i18n="thresholdLabel">آستانهٔ تشخیص RTL</span>
+          <span class="threshold-value" id="thresholdValue">۴۰٪</span>
+        </div>
+        <input
+          type="range"
+          id="thresholdRange"
+          min="10"
+          max="90"
+          step="5"
+          value="40"
+        />
+        <p class="hint" data-i18n="thresholdHint">
+          اگر بیش از این درصد از حروفِ یک بلوک، راست‌به‌چپ باشند، آن بلوک RTL
+          می‌شود.
+        </p>
+      </section>
+
+      <!-- اقدامات پایین -->
+      <section class="footer-actions">
+        <label class="global-toggle">
+          <input type="checkbox" id="applyAllHosts" />
+          <span data-i18n="applyToAll"
+            >این حالت را برای همهٔ سایت‌ها پیش‌فرض کن</span
+          >
+        </label>
+        <button type="button" class="reset-btn" id="resetHost">
+          🗑️
+          <span data-i18n="removeHostOverride">حذف تنظیم اختصاصی این سایت</span>
+        </button>
+      </section>
+
+      <button type="button" class="settings-btn" id="openOptionsBtn">
+        ⚙️
+        <span data-i18n="openAdvancedSettings"
+          >تنظیمات پیشرفته (همه‌ی سایت‌ها)</span
+        >
+      </button>
+      <p class="status" id="statusLine" aria-live="polite"></p>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+  </body>
 </html>
