@@ -370,6 +370,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ ok: true });
     return true;
   }
+
+  if (message?.type === "smart-direction:update-stats") {
+    const { host, mode, blockCount } = message;
+    if (host && mode) {
+      updateStats(host, mode, blockCount || 0);
+      sendResponse({ ok: true });
+    } else {
+      sendResponse({ ok: false, error: "Missing host or mode" });
+    }
+    return true;
+  }
 });
 
 // ============ تغییرات storage ============

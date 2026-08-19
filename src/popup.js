@@ -227,6 +227,14 @@ modeGrid.addEventListener("click", async (e) => {
       await clearHost();
     } else await saveHost({ mode: b.dataset.mode });
     await notify();
+    chrome.runtime
+      .sendMessage({
+        type: "smart-direction:update-stats",
+        host: host,
+        mode: b.dataset.mode,
+        blockCount: 0,
+      })
+      .catch(() => {});
     setStatus(msg("modeApplied", "حالت اعمال شد."));
   } catch {
     setStatus(msg("saveError", "خطا در ذخیره‌سازی"), true);
