@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <title>تنظیمات Smart Direction</title>
+    <title data-i18n="settingsTitle">تنظیمات Smart Direction</title>
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
@@ -14,37 +14,70 @@
           <span class="logo-alef">ا</span>
         </div>
         <div>
-          <h1>Smart Direction</h1>
-          <p class="subtitle">تنظیمات سراسری و مدیریت سایت‌ها</p>
+          <h1 data-i18n="appName">Smart Direction</h1>
+          <p class="subtitle" data-i18n="settingsSubtitle">
+            تنظیمات سراسری و مدیریت سایت‌ها
+          </p>
         </div>
       </header>
 
       <section class="card">
-        <h2>پیش‌فرض سراسری</h2>
-        <p class="desc">
+        <h2 data-i18n="globalDefaultsTitle">پیش‌فرض سراسری</h2>
+        <p class="desc" data-i18n="globalDefaultsDesc">
           این مقادیر برای همهٔ سایت‌هایی که override ندارند اعمال می‌شود.
         </p>
 
         <div class="field">
-          <label>حالت پیش‌فرض</label>
+          <label data-i18n="defaultModeLabel">حالت پیش‌فرض</label>
           <div class="mode-row" id="globalMode" role="radiogroup">
-            <button type="button" class="chip" data-mode="auto">خودکار</button>
-            <button type="button" class="chip" data-mode="ltr">
+            <button
+              type="button"
+              class="chip"
+              data-mode="auto"
+              data-i18n="modeAuto"
+            >
+              خودکار
+            </button>
+            <button
+              type="button"
+              class="chip"
+              data-mode="ltr"
+              data-i18n="modeLtr"
+            >
               همیشه LTR
             </button>
-            <button type="button" class="chip" data-mode="rtl">
+            <button
+              type="button"
+              class="chip"
+              data-mode="rtl"
+              data-i18n="modeRtl"
+            >
               همیشه RTL
             </button>
-            <button type="button" class="chip" data-mode="browser">
+            <button
+              type="button"
+              class="chip"
+              data-mode="browser"
+              data-i18n="modeBrowser"
+            >
               dir=auto
             </button>
-            <button type="button" class="chip" data-mode="off">خاموش</button>
+            <button
+              type="button"
+              class="chip"
+              data-mode="off"
+              data-i18n="modeOff"
+            >
+              خاموش
+            </button>
           </div>
         </div>
 
         <div class="field">
           <div class="label-row">
-            <label for="globalThreshold">آستانهٔ تشخیص RTL</label>
+            <label for="globalThreshold" data-i18n="thresholdLabel"
+              >آستانهٔ تشخیص RTL</label
+            >
             <span id="globalThresholdVal" class="val">۴۰٪</span>
           </div>
           <input
@@ -59,7 +92,9 @@
 
         <div class="field">
           <div class="label-row">
-            <label for="globalMinChars">حداقل حروف قوی</label>
+            <label for="globalMinChars" data-i18n="minCharsLabel"
+              >حداقل حروف قوی</label
+            >
             <span id="globalMinCharsVal" class="val">۳</span>
           </div>
           <input
@@ -72,32 +107,45 @@
           />
         </div>
 
-        <button type="button" class="primary" id="saveGlobal">
+        <button
+          type="button"
+          class="primary"
+          id="saveGlobal"
+          data-i18n="saveGlobalBtn"
+        >
           ذخیرهٔ پیش‌فرض سراسری
         </button>
         <p class="status" id="globalStatus" aria-live="polite"></p>
       </section>
 
       <section class="card">
-        <h2>تنظیمات اختصاصی سایت‌ها</h2>
-        <p class="desc">سایت‌هایی که برایشان حالت جداگانه ذخیره کرده‌اید.</p>
+        <h2 data-i18n="hostOverridesTitle">تنظیمات اختصاصی سایت‌ها</h2>
+        <p class="desc" data-i18n="hostOverridesDesc">
+          سایت‌هایی که برایشان حالت جداگانه ذخیره کرده‌اید.
+        </p>
         <div id="hostList" class="host-list"></div>
-        <button type="button" class="danger-outline" id="clearAllHosts">
+        <button
+          type="button"
+          class="danger-outline"
+          id="clearAllHosts"
+          data-i18n="clearAllHosts"
+        >
           حذف همهٔ تنظیمات اختصاصی
         </button>
       </section>
 
       <section class="card">
-        <h2>میانبر صفحه‌کلید</h2>
-        <p class="desc">
+        <h2 data-i18n="shortcutTitle">میانبر صفحه‌کلید</h2>
+        <p class="desc" data-i18n="shortcutDesc">
           با فشردن میانبر، حالت جهت برای سایت فعلی بین
           <b>خودکار → LTR → RTL → dir=auto → خاموش</b> می‌چرخد و یک اعلان کوتاه
           نمایش داده می‌شود.
         </p>
         <p class="shortcut-box">
-          پیش‌فرض: <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd>
+          <span data-i18n="shortcutDefault">پیش‌فرض:</span> <kbd>Alt</kbd> +
+          <kbd>Shift</kbd> + <kbd>D</kbd>
         </p>
-        <a class="link" href="#" id="openShortcuts"
+        <a class="link" href="#" id="openShortcuts" data-i18n="changeShortcut"
           >تغییر میانبر در تنظیمات کروم →</a
         >
       </section>
@@ -105,7 +153,7 @@
       <footer class="page-footer">
         <span id="footerVersion">نسخه —</span>
         <span>·</span>
-        <span>تشخیص هوشمند RTL/LTR</span>
+        <span data-i18n="footerTagline">تشخیص هوشمند RTL/LTR</span>
       </footer>
     </div>
     <script src="options.js"></script>

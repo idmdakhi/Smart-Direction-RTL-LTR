@@ -2,24 +2,169 @@
  * Smart Direction — Content Script (نسخه بهبودیافته)
  * تشخیص هوشمند جهت با پشتیبانی از Shadow DOM، کارایی بالا، و مدیریت خطا
  */
+/**
+ * Smart Direction — Central Configuration
+ * تمام ثابت‌ها و تنظیمات پیش‌فرض در اینجا متمرکز شده‌اند
+ */
 
-import {
-  DEFAULT_SETTINGS,
-  BLOCK_SELECTOR,
-  CODE_SELECTOR,
-  SKIP_TAGS,
-  RTL_STRONG,
-  LTR_STRONG,
-} from "./config.js";
+const DEFAULT_SETTINGS = {
+  mode: "auto", // "auto" | "ltr" | "rtl" | "off"
+  threshold: 0.4, // نسبت RTL لازم برای تشخیص (۰ تا ۱)
+  minStrongChars: 3, // حداقل حروف قوی برای تصمیم‌گیری
+};
 
-import {
-  safeStorageGet,
-  isValidHost,
-  log,
-  logError,
-  fastHash,
-  isCodeLike,
-} from "./utils.js";
+const BADGE_TEXT = {
+  auto: "A",
+  ltr: "L",
+  rtl: "R",
+  off: "",
+};
+
+const BADGE_COLOR = {
+  auto: "#2F7D6E",
+  ltr: "#3B6CB4",
+  rtl: "#B4553B",
+  off: "#8A8A8A",
+};
+
+// انتخاب‌گرهای بلوک‌های متنی
+const BLOCK_SELECTOR = [
+  "p",
+  "li",
+  "td",
+  "th",
+  "blockquote",
+  "figcaption",
+  "dd",
+  "dt",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "caption",
+  "summary",
+  "label",
+  "legend",
+  "button",
+  "a",
+].join(",");
+
+// انتخاب‌گرهای بلوک‌های کد
+const CODE_SELECTOR = [
+  "code",
+  "pre",
+  "samp",
+  "kbd",
+  "var",
+  "tt",
+  ".hljs",
+  ".prettyprint",
+  ".source-code",
+  ".code-block",
+  "[class*='language-']",
+  "[class*='CodeMirror']",
+  ".cm-editor",
+  ".monaco-editor",
+  '[role="code"]',
+  '[aria-label*="code" i]',
+].join(",");
+
+// برچسب‌هایی که هرگز پردازش نمی‌شوند
+const SKIP_TAGS = new Set([
+  "SCRIPT",
+  "STYLE",
+  "NOSCRIPT",
+  "SVG",
+  "TEXTAREA",
+  "INPUT",
+  "SELECT",
+  "OPTION",
+  "IFRAME",
+  "CANVAS",
+  "TEMPLATE",
+]);
+
+// الگوهای کاراکترهای قوی
+const RTL_STRONG =
+  /[\u0590-\u05FF\u0600-\u06FF\u0700-\u074F\u0750-\u077F\u08A0-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g;
+const LTR_STRONG = /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF]/g;
+
+/**
+ * Smart Direction — Utilities
+ * توابع عمومی، مدیریت خطا، و عملیات ذخیره‌سازی امن
+ */
+
+// ============ ذخیره‌سازی امن ============
+
+async function safeStorageGet(area, keys) {
+  try {
+    return await chrome.storage[area].get(keys);
+  } catch (error) {
+    console.warn("[SmartDirection] Storage get error:", error);
+    return {};
+  }
+}
+
+async function safeStorageSet(area, items) {
+  try {
+    await chrome.storage[area].set(items);
+    return true;
+  } catch (error) {
+    console.warn("[SmartDirection] Storage set error:", error);
+    return false;
+  }
+}
+
+// ============ اعتبارسنجی میزبان ============
+
+function isValidHost(host) {
+  if (!host || typeof host !== "string") return false;
+  // فقط کاراکترهای مجاز: حروف، اعداد، نقطه، خط تیره، زیرخط
+  return /^[a-zA-Z0-9.\-_]+$/.test(host);
+}
+
+// ============ مدیریت لاگ ============
+
+const DEBUG = false;
+
+function log(...args) {
+  if (DEBUG) console.log("[SmartDirection]", ...args);
+}
+
+function logError(...args) {
+  console.error("[SmartDirection]", ...args);
+}
+
+// ============ هش سریع برای امضای متن ============
+
+function fastHash(text) {
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    const char = text.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash.toString(36);
+}
+
+// ============ تشخیص حالت‌های خاص ============
+
+function isCodeLike(text) {
+  if (!text || text.length < 5) return false;
+  const symbols = /[{}\[\]();=<>+\-*/%&|^~!]/g;
+  const matches = text.match(symbols);
+  if (!matches) return false;
+  const ratio = matches.length / text.length;
+  return ratio > 0.15; // بیش از ۱۵٪ نمادهای برنامه‌نویسی
+}
+
+// ============ تبدیل اعداد به فارسی ============
+
+function toPersianDigits(n) {
+  return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+}
 
 // ============ وضعیت داخلی ============
 

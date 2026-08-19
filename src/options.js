@@ -1,3 +1,30 @@
+// ============ ترجمه ============
+function translatePage() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    const msg = chrome.i18n.getMessage(key);
+    if (msg) {
+      if (el.tagName === "INPUT" && el.hasAttribute("placeholder")) {
+        el.placeholder = msg;
+      } else if (el.tagName === "BUTTON" || el.tagName === "A") {
+        // برای دکمه‌ها و لینک‌ها، محتوا را حفظ کن
+        el.textContent = msg;
+      } else {
+        el.textContent = msg;
+      }
+    }
+  });
+}
+document.addEventListener("DOMContentLoaded", translatePage);
+
+function setPageDirection() {
+  const lang = chrome.i18n.getUILanguage();
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang.startsWith("fa") ? "rtl" : "ltr";
+}
+document.addEventListener("DOMContentLoaded", setPageDirection);
+
+// ============ تنظیمات پیش‌فرض ============
 const DEFAULT_SETTINGS = { mode: "auto", threshold: 0.4, minStrongChars: 3 };
 
 const globalMode = document.getElementById("globalMode");
@@ -14,6 +41,16 @@ const openShortcuts = document.getElementById("openShortcuts");
 
 function toPersianDigits(n) {
   return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+}
+
+function getModeNames() {
+  return {
+    auto: chrome.i18n.getMessage("modeAuto"),
+    ltr: chrome.i18n.getMessage("modeLtr"),
+    rtl: chrome.i18n.getMessage("modeRtl"),
+    browser: chrome.i18n.getMessage("modeBrowser"),
+    off: chrome.i18n.getMessage("modeOff"),
+  };
 }
 
 function paintMode(mode) {
@@ -34,15 +71,8 @@ function paintMinChars(n) {
 }
 
 function modeLabel(m) {
-  return (
-    {
-      auto: "خودکار",
-      ltr: "LTR",
-      rtl: "RTL",
-      browser: "dir=auto",
-      off: "خاموش",
-    }[m] || m
-  );
+  const names = getModeNames();
+  return names[m] || m;
 }
 
 async function loadGlobal() {
@@ -64,7 +94,7 @@ async function loadHosts() {
 
   hostList.innerHTML = "";
   if (keys.length === 0) {
-    hostList.innerHTML = `<p class="empty-hosts">هنوز تنظیم اختصاصی برای هیچ سایتی ذخیره نشده است.</p>`;
+    hostList.innerHTML = `<p class="empty-hosts">${chrome.i18n.getMessage("noHostOverrides") || "هنوز تنظیم اختصاصی برای هیچ سایتی ذخیره نشده است."}</p>`;
     return;
   }
 
@@ -72,12 +102,13 @@ async function loadHosts() {
     const conf = hosts[host];
     const item = document.createElement("div");
     item.className = "host-item";
+    const modeText = modeLabel(conf.mode || "auto");
     item.innerHTML = `
       <div>
         <div class="host-name">${host}</div>
-        <div class="host-meta">حالت: ${modeLabel(conf.mode || "auto")}</div>
+        <div class="host-meta">${chrome.i18n.getMessage("hostModeLabel") || "حالت:"} ${modeText}</div>
       </div>
-      <button type="button" class="host-remove" data-host="${host}">حذف</button>
+      <button type="button" class="host-remove" data-host="${host}">${chrome.i18n.getMessage("remove") || "حذف"}</button>
     `;
     hostList.appendChild(item);
   }
@@ -116,14 +147,17 @@ saveGlobalBtn.addEventListener("click", async () => {
   await chrome.storage.sync.set({
     smartDirectionDefaults: { mode, threshold, minStrongChars },
   });
-  globalStatus.textContent = "ذخیره شد.";
+  globalStatus.textContent = chrome.i18n.getMessage("saved") || "ذخیره شد.";
   setTimeout(() => {
     globalStatus.textContent = "";
   }, 2500);
 });
 
 clearAllHostsBtn.addEventListener("click", async () => {
-  if (!confirm("همهٔ تنظیمات اختصاصی سایت‌ها حذف شود؟")) return;
+  const confirmMsg =
+    chrome.i18n.getMessage("confirmClearAllHosts") ||
+    "همهٔ تنظیمات اختصاصی سایت‌ها حذف شود؟";
+  if (!confirm(confirmMsg)) return;
   await chrome.storage.local.set({ smartDirectionHosts: {} });
   await loadHosts();
 });
@@ -140,6 +174,6 @@ try {
   const manifest = chrome.runtime.getManifest();
   const el = document.getElementById("footerVersion");
   if (el && manifest?.version) {
-    el.textContent = `نسخه ${manifest.version}`;
+    el.textContent = `${chrome.i18n.getMessage("version") || "نسخه"} ${manifest.version}`;
   }
 } catch {}

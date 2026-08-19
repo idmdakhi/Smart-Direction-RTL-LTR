@@ -4,6 +4,6 @@ export default defineConfig({
   test: {
     environment: "happy-dom", // شبیه‌سازی DOM مرورگر
     globals: true, // استفاده از describe, it, expect بدون import
-    include: ["src/__tests__/**/*.test.js"],
+    include: ["tests/**/*.test.js"],
   },
 });

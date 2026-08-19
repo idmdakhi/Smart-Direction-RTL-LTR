@@ -13,10 +13,10 @@
         <span class="glyph-alef">ا</span>
       </div>
       <div class="title-block">
-        <h1>Smart Direction</h1>
+        <h1 data-i18n="appName">Smart Direction</h1>
         <p class="host" id="hostLabel">—</p>
         <span class="badge-override" id="overrideBadge" style="display: none"
-          >⚡ اختصاصی</span
+          >⚡ <span data-i18n="overrideBadge">اختصاصی</span></span
         >
       </div>
     </header>
@@ -24,8 +24,12 @@
     <main>
       <!-- وضعیت فعلی -->
       <section class="status-bar" id="statusBar">
-        <span class="status-mode" id="currentModeDisplay">خودکار</span>
-        <span class="status-count" id="processedCount">۰ بلوک پردازش شد</span>
+        <span class="status-mode" id="currentModeDisplay">
+          <span data-i18n="modeAuto">خودکار</span>
+        </span>
+        <span class="status-count" id="processedCount">
+          <span data-i18n="processedCount">۰ بلوک پردازش شد</span>
+        </span>
       </section>
 
       <!-- انتخاب حالت -->
@@ -38,34 +42,38 @@
         >
           <button type="button" class="mode-btn" data-mode="auto">
             <span class="mode-dot mode-dot--auto"></span>
-            <span class="mode-name">خودکار</span>
-            <span class="mode-hint">بر اساس محتوا</span>
+            <span class="mode-name" data-i18n="modeAuto">خودکار</span>
+            <span class="mode-hint" data-i18n="modeAutoHint"
+              >بر اساس محتوا</span
+            >
           </button>
           <button type="button" class="mode-btn" data-mode="ltr">
             <span class="mode-dot mode-dot--ltr"></span>
-            <span class="mode-name">همیشه LTR</span>
-            <span class="mode-hint">چپ‌به‌راست</span>
+            <span class="mode-name" data-i18n="modeLtr">همیشه LTR</span>
+            <span class="mode-hint" data-i18n="modeLtrHint">چپ‌به‌راست</span>
           </button>
           <button type="button" class="mode-btn" data-mode="rtl">
             <span class="mode-dot mode-dot--rtl"></span>
-            <span class="mode-name">همیشه RTL</span>
-            <span class="mode-hint">راست‌به‌چپ</span>
+            <span class="mode-name" data-i18n="modeRtl">همیشه RTL</span>
+            <span class="mode-hint" data-i18n="modeRtlHint">راست‌به‌چپ</span>
           </button>
           <button type="button" class="mode-btn" data-mode="off">
             <span class="mode-dot mode-dot--off"></span>
-            <span class="mode-name">خاموش</span>
-            <span class="mode-hint">دست‌نخورده</span>
+            <span class="mode-name" data-i18n="modeOff">خاموش</span>
+            <span class="mode-hint" data-i18n="modeOffHint">دست‌نخورده</span>
           </button>
         </div>
         <p class="scope-note" id="scopeNote">
-          این تنظیم فقط برای <b id="scopeHost">این سایت</b> ذخیره می‌شود.
+          <span data-i18n="scopeNotePrefix">این تنظیم فقط برای</span>
+          <b id="scopeHost">این سایت</b>
+          <span data-i18n="scopeNoteSuffix">ذخیره می‌شود.</span>
         </p>
       </section>
 
       <!-- آستانه تشخیص -->
       <section class="threshold-section">
         <div class="threshold-label">
-          <span>آستانهٔ تشخیص RTL</span>
+          <span data-i18n="thresholdLabel">آستانهٔ تشخیص RTL</span>
           <span class="threshold-value" id="thresholdValue">۴۰٪</span>
         </div>
         <input
@@ -76,7 +84,7 @@
           step="5"
           value="40"
         />
-        <p class="hint">
+        <p class="hint" data-i18n="thresholdHint">
           اگر بیش از این درصد از حروفِ یک بلوک، راست‌به‌چپ باشند، آن بلوک RTL
           می‌شود.
         </p>
@@ -86,13 +94,22 @@
       <section class="footer-actions">
         <label class="global-toggle">
           <input type="checkbox" id="applyAllHosts" />
-          <span>این حالت را برای همهٔ سایت‌ها پیش‌فرض کن</span>
+          <span data-i18n="applyToAll"
+            >این حالت را برای همهٔ سایت‌ها پیش‌فرض کن</span
+          >
         </label>
         <button type="button" class="reset-btn" id="resetHost">
-          🗑️ حذف تنظیم اختصاصی این سایت
+          🗑️
+          <span data-i18n="removeHostOverride">حذف تنظیم اختصاصی این سایت</span>
         </button>
       </section>
 
+      <button type="button" class="settings-btn" id="openOptionsBtn">
+        ⚙️
+        <span data-i18n="openAdvancedSettings"
+          >تنظیمات پیشرفته (همه‌ی سایت‌ها)</span
+        >
+      </button>
       <p class="status" id="statusLine" aria-live="polite"></p>
     </main>
 

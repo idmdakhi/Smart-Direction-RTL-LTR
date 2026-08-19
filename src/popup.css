@@ -251,3 +251,24 @@ main {
   color: #78756c;
   min-height: 12px;
 }
+
+/* ===== دکمه باز کردن تنظیمات ===== */
+.settings-btn {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--ltr);
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  transition: background-color 0.15s ease;
+  margin-top: 4px;
+}
+.settings-btn:hover {
+  background-color: #f0efea;
+}
+.settings-btn:active {
+  transform: scale(0.98);
+}

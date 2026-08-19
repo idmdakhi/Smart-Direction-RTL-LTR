@@ -1,20 +1,34 @@
-/**
- * Smart Direction — Popup Script (نسخه بهبودیافته)
- * مدیریت تعاملات کاربر، ذخیره‌سازی، و ارتباط با content script
- */
+// ============ ترجمه ============
+function translatePage() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    const msg = chrome.i18n.getMessage(key);
+    if (msg) {
+      if (el.tagName === "INPUT" && el.hasAttribute("placeholder")) {
+        el.placeholder = msg;
+      } else {
+        el.textContent = msg;
+      }
+    }
+  });
+}
+document.addEventListener("DOMContentLoaded", translatePage);
 
-import { DEFAULT_SETTINGS } from "./config.js";
-import {
-  safeStorageGet,
-  safeStorageSet,
-  isValidHost,
-  toPersianDigits,
-  log,
-  logError,
-} from "./utils.js";
+function setPageDirection() {
+  const lang = chrome.i18n.getUILanguage();
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang.startsWith("fa") ? "rtl" : "ltr";
+}
+document.addEventListener("DOMContentLoaded", setPageDirection);
+
+// ============ تنظیمات پیش‌فرض ============
+const DEFAULT_SETTINGS = {
+  mode: "auto",
+  threshold: 0.4,
+  minStrongChars: 3,
+};
 
 // ============ DOM refs ============
-
 const modeGrid = document.getElementById("modeGrid");
 const modeButtons = Array.from(modeGrid.querySelectorAll(".mode-btn"));
 const hostLabel = document.getElementById("hostLabel");
@@ -27,16 +41,15 @@ const resetHostBtn = document.getElementById("resetHost");
 const statusLine = document.getElementById("statusLine");
 const currentModeDisplay = document.getElementById("currentModeDisplay");
 const processedCount = document.getElementById("processedCount");
+const openOptionsBtn = document.getElementById("openOptionsBtn");
 
 // ============ وضعیت ============
-
 let activeTab = null;
 let host = "";
 let hasHostOverride = false;
 let isApplying = false;
 
 // ============ توابع کمکی ============
-
 function setStatus(text, isError = false) {
   statusLine.textContent = text;
   if (text) {
@@ -46,19 +59,26 @@ function setStatus(text, isError = false) {
   }
 }
 
+function getModeNames() {
+  return {
+    auto: chrome.i18n.getMessage("modeAuto"),
+    ltr: chrome.i18n.getMessage("modeLtr"),
+    rtl: chrome.i18n.getMessage("modeRtl"),
+    off: chrome.i18n.getMessage("modeOff"),
+  };
+}
+
 function paintModeSelection(mode) {
   for (const btn of modeButtons) {
     const selected = btn.dataset.mode === mode;
     btn.setAttribute("aria-checked", String(selected));
   }
-  // نمایش نام حالت
-  const modeNames = {
-    auto: "خودکار",
-    ltr: "همیشه LTR",
-    rtl: "همیشه RTL",
-    off: "خاموش",
-  };
-  currentModeDisplay.textContent = modeNames[mode] || "خودکار";
+  const modeNames = getModeNames();
+  currentModeDisplay.textContent = modeNames[mode] || modeNames.auto;
+}
+
+function toPersianDigits(n) {
+  return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
 }
 
 function paintThreshold(threshold) {
@@ -76,8 +96,32 @@ function updateUI(state) {
   applyAllHosts.checked = false;
 }
 
-// ============ دریافت وضعیت ذخیره‌شده ============
+// ============ ذخیره‌سازی امن ============
+async function safeStorageGet(area, keys) {
+  try {
+    return await chrome.storage[area].get(keys);
+  } catch (error) {
+    console.warn("[SmartDirection] Storage get error:", error);
+    return {};
+  }
+}
 
+async function safeStorageSet(area, items) {
+  try {
+    await chrome.storage[area].set(items);
+    return true;
+  } catch (error) {
+    console.warn("[SmartDirection] Storage set error:", error);
+    return false;
+  }
+}
+
+function isValidHost(host) {
+  if (!host || typeof host !== "string") return false;
+  return /^[a-zA-Z0-9.\-_]+$/.test(host);
+}
+
+// ============ دریافت وضعیت ذخیره‌شده ============
 async function getStoredState() {
   const [defaultsResult, hostsResult] = await Promise.all([
     safeStorageGet("sync", "smartDirectionDefaults"),
@@ -100,7 +144,6 @@ async function getStoredState() {
 }
 
 // ============ ذخیره‌سازی ============
-
 async function saveHostOverride(partial) {
   const hostsResult = await safeStorageGet("local", "smartDirectionHosts");
   const hosts = hostsResult.smartDirectionHosts || {};
@@ -126,42 +169,65 @@ async function clearHostOverride() {
 }
 
 // ============ اطلاع‌رسانی به تب فعال ============
-
 async function notifyActiveTab() {
-  if (!activeTab?.id) return;
-  try {
-    await chrome.tabs.sendMessage(activeTab.id, {
+  if (!activeTab?.id || !host || !isValidHost(host)) return;
+
+  const sendMessage = () =>
+    chrome.tabs.sendMessage(activeTab.id, {
       type: "smart-direction:apply-now",
     });
-  } catch (error) {
-    logError("Notify active tab error:", error);
+
+  try {
+    await sendMessage();
+  } catch (err) {
+    try {
+      // تزریق content.js (بدون نیاز به باندل)
+      await chrome.scripting.executeScript({
+        target: { tabId: activeTab.id },
+        files: ["src/content.js"],
+      });
+      await sendMessage();
+    } catch (injectErr) {
+      console.debug(
+        "[SmartDirection] Cannot inject or notify tab:",
+        injectErr.message,
+      );
+    }
   }
+
   chrome.runtime
     .sendMessage({ type: "smart-direction:refresh-badge" })
     .catch(() => {});
 }
 
 // ============ به‌روزرسانی پاپ‌آپ ============
-
 async function refresh() {
-  if (!host) return;
+  if (!host || !isValidHost(host)) {
+    processedCount.textContent =
+      chrome.i18n.getMessage("unsupportedPage") || "⚠️ صفحه پشتیبانی نمی‌شود";
+    return;
+  }
   const state = await getStoredState();
   updateUI(state);
-  // شمارش بلوک‌های پردازش‌شده (از طریق پیام به content)
+
   try {
     const response = await chrome.tabs.sendMessage(activeTab.id, {
       type: "smart-direction:get-status",
     });
     if (response && response.mode) {
-      processedCount.textContent = `حالت: ${response.mode}`;
+      const modeNames = getModeNames();
+      const modeText = modeNames[response.mode] || response.mode;
+      processedCount.textContent =
+        chrome.i18n.getMessage("statusBarMode", modeText) ||
+        `حالت: ${modeText}`;
     }
   } catch {
-    processedCount.textContent = "⚠️ صفحه پشتیبانی نمی‌کند";
+    processedCount.textContent =
+      chrome.i18n.getMessage("unsupportedPage") || "⚠️ صفحه پشتیبانی نمی‌کند";
   }
 }
 
 // ============ مقداردهی اولیه ============
-
 async function init() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   activeTab = tab;
@@ -172,17 +238,27 @@ async function init() {
     host = "";
   }
 
-  hostLabel.textContent = host || "این صفحه پشتیبانی نمی‌شود";
-  scopeHost.textContent = host || "این سایت";
+  hostLabel.textContent =
+    host ||
+    chrome.i18n.getMessage("unsupportedPage") ||
+    "این صفحه پشتیبانی نمی‌شود";
+  scopeHost.textContent =
+    host || chrome.i18n.getMessage("thisSite") || "این سایت";
 
   if (!host || !isValidHost(host)) {
     modeButtons.forEach((b) => (b.disabled = true));
     thresholdRange.disabled = true;
     applyAllHosts.disabled = true;
     resetHostBtn.disabled = true;
-    setStatus("⚠️ صفحه داخلی یا نامعتبر", true);
+    openOptionsBtn.disabled = true;
+    setStatus(
+      chrome.i18n.getMessage("unsupportedPageError") ||
+        "⚠️ صفحه داخلی یا نامعتبر",
+      true,
+    );
     return;
   }
+  openOptionsBtn.disabled = false;
 
   await refresh();
 }
@@ -205,17 +281,20 @@ modeGrid.addEventListener("click", async (event) => {
     }
     paintModeSelection(mode);
     await notifyActiveTab();
-    setStatus("✅ حالت اعمال شد.");
+    setStatus(chrome.i18n.getMessage("modeApplied") || "✅ حالت اعمال شد.");
   } catch (error) {
-    logError("Mode selection error:", error);
-    setStatus("❌ خطا در ذخیره‌سازی", true);
+    console.error("[SmartDirection] Mode selection error:", error);
+    setStatus(
+      chrome.i18n.getMessage("saveError") || "❌ خطا در ذخیره‌سازی",
+      true,
+    );
   } finally {
     isApplying = false;
     await refresh();
   }
 });
 
-// تغییر آستانه (هنگام لغزیدن)
+// تغییر آستانه (لغزیدن)
 thresholdRange.addEventListener("input", () => {
   const pct = Number(thresholdRange.value);
   thresholdValue.textContent = `${toPersianDigits(pct)}٪`;
@@ -235,10 +314,15 @@ thresholdRange.addEventListener("change", async () => {
       await saveHostOverride({ threshold });
     }
     await notifyActiveTab();
-    setStatus("✅ آستانه به‌روزرسانی شد.");
+    setStatus(
+      chrome.i18n.getMessage("thresholdUpdated") || "✅ آستانه به‌روزرسانی شد.",
+    );
   } catch (error) {
-    logError("Threshold change error:", error);
-    setStatus("❌ خطا در ذخیره‌سازی", true);
+    console.error("[SmartDirection] Threshold change error:", error);
+    setStatus(
+      chrome.i18n.getMessage("saveError") || "❌ خطا در ذخیره‌سازی",
+      true,
+    );
   } finally {
     isApplying = false;
     await refresh();
@@ -248,24 +332,33 @@ thresholdRange.addEventListener("change", async () => {
 // حذف تنظیم اختصاصی
 resetHostBtn.addEventListener("click", async () => {
   if (!host || isApplying) return;
-  if (!confirm("آیا از حذف تنظیمات اختصاصی این سایت مطمئن هستید؟")) return;
+  const confirmMsg =
+    chrome.i18n.getMessage("confirmRemoveOverride") ||
+    "آیا از حذف تنظیمات اختصاصی این سایت مطمئن هستید؟";
+  if (!confirm(confirmMsg)) return;
   isApplying = true;
 
   try {
     await clearHostOverride();
     await refresh();
     await notifyActiveTab();
-    setStatus("✅ تنظیم اختصاصی حذف شد.");
+    setStatus(
+      chrome.i18n.getMessage("overrideRemoved") || "✅ تنظیم اختصاصی حذف شد.",
+    );
   } catch (error) {
-    logError("Reset error:", error);
-    setStatus("❌ خطا در حذف", true);
+    console.error("[SmartDirection] Reset error:", error);
+    setStatus(chrome.i18n.getMessage("removeError") || "❌ خطا در حذف", true);
   } finally {
     isApplying = false;
   }
 });
 
-// ============ گوش‌دادن به تغییرات storage ============
+// ============ باز کردن صفحه‌ی تنظیمات ============
+openOptionsBtn.addEventListener("click", () => {
+  chrome.runtime.openOptionsPage();
+});
 
+// ============ گوش‌دادن به تغییرات storage ============
 chrome.storage.onChanged.addListener(() => {
   if (host && isValidHost(host)) {
     refresh();
@@ -273,5 +366,4 @@ chrome.storage.onChanged.addListener(() => {
 });
 
 // ============ اجرا ============
-
 init();

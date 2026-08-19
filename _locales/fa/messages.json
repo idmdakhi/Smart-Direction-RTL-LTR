@@ -1,0 +1,218 @@
+{
+  "appName": {
+    "message": "جهت‌یاب هوشمند",
+    "description": "نام افزونه"
+  },
+  "appDescription": {
+    "message": "تشخیص هوشمند راست‌به‌چپ / چپ‌به‌راست",
+    "description": "توضیح کوتاه"
+  },
+  "modeAuto": {
+    "message": "خودکار",
+    "description": "حالت خودکار"
+  },
+  "modeAutoHint": {
+    "message": "بر اساس محتوا",
+    "description": "راهنمای حالت خودکار"
+  },
+  "modeLtr": {
+    "message": "همیشه LTR",
+    "description": "همیشه چپ‌به‌راست"
+  },
+  "modeLtrHint": {
+    "message": "چپ‌به‌راست",
+    "description": "راهنمای حالت LTR"
+  },
+  "modeRtl": {
+    "message": "همیشه RTL",
+    "description": "همیشه راست‌به‌چپ"
+  },
+  "modeRtlHint": {
+    "message": "راست‌به‌چپ",
+    "description": "راهنمای حالت RTL"
+  },
+  "modeOff": {
+    "message": "خاموش",
+    "description": "حالت غیرفعال"
+  },
+  "modeOffHint": {
+    "message": "دست‌نخورده",
+    "description": "راهنمای حالت خاموش"
+  },
+  "modeBrowser": {
+    "message": "dir=auto",
+    "description": "حالت خودکار مرورگر"
+  },
+  "settingsTitle": {
+    "message": "تنظیمات جهت‌یاب هوشمند",
+    "description": "عنوان صفحه‌ی تنظیمات"
+  },
+  "settingsSubtitle": {
+    "message": "تنظیمات سراسری و مدیریت سایت‌ها",
+    "description": "زیرعنوان صفحه‌ی تنظیمات"
+  },
+  "globalDefaultsTitle": {
+    "message": "پیش‌فرض سراسری",
+    "description": "عنوان بخش پیش‌فرض سراسری"
+  },
+  "globalDefaultsDesc": {
+    "message": "این مقادیر برای همهٔ سایت‌هایی که override ندارند اعمال می‌شود.",
+    "description": "توضیح پیش‌فرض سراسری"
+  },
+  "defaultModeLabel": {
+    "message": "حالت پیش‌فرض",
+    "description": "برچسب حالت پیش‌فرض"
+  },
+  "thresholdLabel": {
+    "message": "آستانهٔ تشخیص RTL",
+    "description": "برچسب آستانه"
+  },
+  "thresholdHint": {
+    "message": "اگر بیش از این درصد از حروفِ یک بلوک، راست‌به‌چپ باشند، آن بلوک RTL می‌شود.",
+    "description": "راهنمای آستانه"
+  },
+  "minCharsLabel": {
+    "message": "حداقل حروف قوی",
+    "description": "برچسب حداقل حروف قوی"
+  },
+  "saveGlobalBtn": {
+    "message": "ذخیرهٔ پیش‌فرض سراسری",
+    "description": "دکمه‌ی ذخیره‌ی پیش‌فرض سراسری"
+  },
+  "saved": {
+    "message": "ذخیره شد.",
+    "description": "پیام ذخیره‌سازی"
+  },
+  "hostOverridesTitle": {
+    "message": "تنظیمات اختصاصی سایت‌ها",
+    "description": "عنوان بخش تنظیمات اختصاصی"
+  },
+  "hostOverridesDesc": {
+    "message": "سایت‌هایی که برایشان حالت جداگانه ذخیره کرده‌اید.",
+    "description": "توضیح تنظیمات اختصاصی"
+  },
+  "noHostOverrides": {
+    "message": "هنوز تنظیم اختصاصی برای هیچ سایتی ذخیره نشده است.",
+    "description": "پیام خالی بودن لیست"
+  },
+  "hostModeLabel": {
+    "message": "حالت:",
+    "description": "برچسب حالت سایت"
+  },
+  "remove": {
+    "message": "حذف",
+    "description": "دکمه‌ی حذف"
+  },
+  "clearAllHosts": {
+    "message": "حذف همهٔ تنظیمات اختصاصی",
+    "description": "دکمه‌ی حذف همه"
+  },
+  "confirmClearAllHosts": {
+    "message": "همهٔ تنظیمات اختصاصی سایت‌ها حذف شود؟",
+    "description": "تأیید حذف همه"
+  },
+  "shortcutTitle": {
+    "message": "میانبر صفحه‌کلید",
+    "description": "عنوان بخش میانبر"
+  },
+  "shortcutDesc": {
+    "message": "با فشردن میانبر، حالت جهت برای سایت فعلی بین خودکار → LTR → RTL → dir=auto → خاموش می‌چرخد و یک اعلان کوتاه نمایش داده می‌شود.",
+    "description": "توضیح میانبر"
+  },
+  "shortcutDefault": {
+    "message": "پیش‌فرض:",
+    "description": "برچسب پیش‌فرض میانبر"
+  },
+  "changeShortcut": {
+    "message": "تغییر میانبر در تنظیمات کروم →",
+    "description": "لینک تغییر میانبر"
+  },
+  "version": {
+    "message": "نسخه",
+    "description": "برچسب نسخه"
+  },
+  "footerTagline": {
+    "message": "تشخیص هوشمند RTL/LTR",
+    "description": "برچسب پایین صفحه"
+  },
+  "applyToAll": {
+    "message": "این حالت را برای همهٔ سایت‌ها پیش‌فرض کن",
+    "description": "برچسب چک‌باکس"
+  },
+  "removeHostOverride": {
+    "message": "🗑️ حذف تنظیم اختصاصی این سایت",
+    "description": "متن دکمه‌ی حذف"
+  },
+  "openAdvancedSettings": {
+    "message": "⚙️ تنظیمات پیشرفته (همه‌ی سایت‌ها)",
+    "description": "متن دکمه‌ی باز کردن تنظیمات"
+  },
+  "statusBarMode": {
+    "message": "حالت: $MODE$",
+    "description": "وضعیت فعلی در نوار وضعیت",
+    "placeholders": {
+      "mode": {
+        "content": "$1",
+        "example": "خودکار"
+      }
+    }
+  },
+  "overrideBadge": {
+    "message": "اختصاصی",
+    "description": "برچسب اختصاصی"
+  },
+  "processedCount": {
+    "message": "$COUNT$ بلوک پردازش شد",
+    "description": "تعداد بلوک‌های پردازش‌شده",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "۰"
+      }
+    }
+  },
+  "scopeNotePrefix": {
+    "message": "این تنظیم فقط برای",
+    "description": "بخش اول متن حوزه"
+  },
+  "scopeNoteSuffix": {
+    "message": "ذخیره می‌شود.",
+    "description": "بخش دوم متن حوزه"
+  },
+  "thisSite": {
+    "message": "این سایت",
+    "description": "جای‌گذاری این سایت"
+  },
+  "unsupportedPage": {
+    "message": "⚠️ صفحه پشتیبانی نمی‌شود",
+    "description": "پیام صفحه‌ی پشتیبانی‌نشده"
+  },
+  "unsupportedPageError": {
+    "message": "⚠️ صفحه داخلی یا نامعتبر",
+    "description": "خطای صفحه‌ی نامعتبر"
+  },
+  "modeApplied": {
+    "message": "✅ حالت اعمال شد.",
+    "description": "پیام اعمال حالت"
+  },
+  "saveError": {
+    "message": "❌ خطا در ذخیره‌سازی",
+    "description": "خطای ذخیره‌سازی"
+  },
+  "thresholdUpdated": {
+    "message": "✅ آستانه به‌روزرسانی شد.",
+    "description": "پیام به‌روزرسانی آستانه"
+  },
+  "confirmRemoveOverride": {
+    "message": "آیا از حذف تنظیمات اختصاصی این سایت مطمئن هستید؟",
+    "description": "تأیید حذف تنظیم اختصاصی"
+  },
+  "overrideRemoved": {
+    "message": "✅ تنظیم اختصاصی حذف شد.",
+    "description": "پیام حذف تنظیم اختصاصی"
+  },
+  "removeError": {
+    "message": "❌ خطا در حذف",
+    "description": "خطای حذف"
+  }
+}

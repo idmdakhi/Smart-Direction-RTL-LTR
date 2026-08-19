@@ -13,7 +13,7 @@ export function detectDirection(text, threshold, minStrongChars) {
   return ratio >= threshold ? "rtl" : "ltr";
 }
 import { describe, it, expect } from "vitest";
-import { detectDirection } from "../utils.js";
+import { detectDirection } from "./utils.js";
 
 describe("content.js — منطق تشخیص جهت", () => {
   const THRESHOLD = 0.4;
