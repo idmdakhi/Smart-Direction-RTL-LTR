@@ -1,17 +1,13 @@
 /**
  * Smart Direction — Service Worker
- * مدیریت بَدج، همگام‌سازی تنظیمات، و ارتباط بین اجزا
- */
-
-/**
- * Smart Direction — Central Configuration
- * تمام ثابت‌ها و تنظیمات پیش‌فرض در اینجا متمرکز شده‌اند
+ * مدیریت بَدج، همگام‌سازی تنظیمات، آمار، لیست‌های سفید/سیاه و تشخیص زبان
  */
 
 const DEFAULT_SETTINGS = {
-  mode: "auto", // "auto" | "ltr" | "rtl" | "off"
-  threshold: 0.4, // نسبت RTL لازم برای تشخیص (۰ تا ۱)
-  minStrongChars: 3, // حداقل حروف قوی برای تصمیم‌گیری
+  mode: "auto",
+  threshold: 0.4,
+  minStrongChars: 3,
+  autoDetectLanguage: true, // 🎯 جدید: تشخیص خودکار زبان
 };
 
 const BADGE_TEXT = {
@@ -28,81 +24,11 @@ const BADGE_COLOR = {
   off: "#8A8A8A",
 };
 
-// انتخاب‌گرهای بلوک‌های متنی
-const BLOCK_SELECTOR = [
-  "p",
-  "li",
-  "td",
-  "th",
-  "blockquote",
-  "figcaption",
-  "dd",
-  "dt",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-  "caption",
-  "summary",
-  "label",
-  "legend",
-  "button",
-  "a",
-].join(",");
-
-// انتخاب‌گرهای بلوک‌های کد
-const CODE_SELECTOR = [
-  "code",
-  "pre",
-  "samp",
-  "kbd",
-  "var",
-  "tt",
-  ".hljs",
-  ".prettyprint",
-  ".source-code",
-  ".code-block",
-  "[class*='language-']",
-  "[class*='CodeMirror']",
-  ".cm-editor",
-  ".monaco-editor",
-  '[role="code"]',
-  '[aria-label*="code" i]',
-].join(",");
-
-// برچسب‌هایی که هرگز پردازش نمی‌شوند
-const SKIP_TAGS = new Set([
-  "SCRIPT",
-  "STYLE",
-  "NOSCRIPT",
-  "SVG",
-  "TEXTAREA",
-  "INPUT",
-  "SELECT",
-  "OPTION",
-  "IFRAME",
-  "CANVAS",
-  "TEMPLATE",
-]);
-
-// الگوهای کاراکترهای قوی
-const RTL_STRONG =
-  /[\u0590-\u05FF\u0600-\u06FF\u0700-\u074F\u0750-\u077F\u08A0-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g;
-const LTR_STRONG = /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF]/g;
-/**
- * Smart Direction — Utilities
- * توابع عمومی، مدیریت خطا، و عملیات ذخیره‌سازی امن
- */
-
 // ============ ذخیره‌سازی امن ============
-
 async function safeStorageGet(area, keys) {
   try {
     return await chrome.storage[area].get(keys);
-  } catch (error) {
-    console.warn("[SmartDirection] Storage get error:", error);
+  } catch {
     return {};
   }
 }
@@ -111,63 +37,25 @@ async function safeStorageSet(area, items) {
   try {
     await chrome.storage[area].set(items);
     return true;
-  } catch (error) {
-    console.warn("[SmartDirection] Storage set error:", error);
+  } catch {
     return false;
   }
 }
 
-// ============ اعتبارسنجی میزبان ============
-
 function isValidHost(host) {
   if (!host || typeof host !== "string") return false;
-  // فقط کاراکترهای مجاز: حروف، اعداد، نقطه، خط تیره، زیرخط
   return /^[a-zA-Z0-9.\-_]+$/.test(host);
 }
 
-// ============ مدیریت لاگ ============
-
 const DEBUG = false;
-
 function log(...args) {
   if (DEBUG) console.log("[SmartDirection]", ...args);
 }
-
 function logError(...args) {
   console.error("[SmartDirection]", ...args);
 }
 
-// ============ هش سریع برای امضای متن ============
-
-function fastHash(text) {
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    const char = text.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash.toString(36);
-}
-
-// ============ تشخیص حالت‌های خاص ============
-
-function isCodeLike(text) {
-  if (!text || text.length < 5) return false;
-  const symbols = /[{}\[\]();=<>+\-*/%&|^~!]/g;
-  const matches = text.match(symbols);
-  if (!matches) return false;
-  const ratio = matches.length / text.length;
-  return ratio > 0.15; // بیش از ۱۵٪ نمادهای برنامه‌نویسی
-}
-
-// ============ تبدیل اعداد به فارسی ============
-
-function toPersianDigits(n) {
-  return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
-}
-
 // ============ مقداردهی اولیه ============
-
 chrome.runtime.onInstalled.addListener(async () => {
   const { smartDirectionDefaults } = await safeStorageGet(
     "sync",
@@ -176,18 +64,36 @@ chrome.runtime.onInstalled.addListener(async () => {
   if (!smartDirectionDefaults) {
     await safeStorageSet("sync", { smartDirectionDefaults: DEFAULT_SETTINGS });
   }
+  // مقداردهی اولیه برای آمار
+  const { smartDirectionStats } = await safeStorageGet(
+    "local",
+    "smartDirectionStats",
+  );
+  if (!smartDirectionStats) {
+    await safeStorageSet("local", {
+      smartDirectionStats: {
+        totalSites: 0,
+        totalBlocks: 0,
+        modeChanges: {},
+        lastUsed: null,
+        sites: {},
+      },
+    });
+  }
   log("Service worker installed with defaults:", DEFAULT_SETTINGS);
 });
 
-// ============ دریافت حالت مؤثر برای یک میزبان ============
+// ============ دریافت حالت مؤثر ============
+async function effectiveSettingsForHost(host) {
+  if (!isValidHost(host)) return { ...DEFAULT_SETTINGS };
 
-async function effectiveModeForHost(host) {
-  if (!isValidHost(host)) return DEFAULT_SETTINGS.mode;
-
-  const [defaultsResult, hostsResult] = await Promise.all([
-    safeStorageGet("sync", "smartDirectionDefaults"),
-    safeStorageGet("local", "smartDirectionHosts"),
-  ]);
+  const [defaultsResult, hostsResult, whitelistResult, blacklistResult] =
+    await Promise.all([
+      safeStorageGet("sync", "smartDirectionDefaults"),
+      safeStorageGet("local", "smartDirectionHosts"),
+      safeStorageGet("local", "smartDirectionWhitelist"),
+      safeStorageGet("local", "smartDirectionBlacklist"),
+    ]);
 
   const globalDefaults = {
     ...DEFAULT_SETTINGS,
@@ -195,11 +101,39 @@ async function effectiveModeForHost(host) {
   };
   const hosts = hostsResult.smartDirectionHosts || {};
   const override = hosts[host];
-  return (override && override.mode) || globalDefaults.mode;
+
+  // 📋 بررسی لیست‌های سفید/سیاه
+  const whitelist = whitelistResult.smartDirectionWhitelist || [];
+  const blacklist = blacklistResult.smartDirectionBlacklist || [];
+
+  let settings = { ...globalDefaults, ...(override || {}) };
+
+  // اگر در لیست سیاه باشد، حالت را خاموش کن
+  if (blacklist.includes(host)) {
+    settings.mode = "off";
+    return settings;
+  }
+
+  // اگر لیست سفید غیرخالی است و میزبان در آن نیست، خاموش کن
+  if (whitelist.length > 0 && !whitelist.includes(host)) {
+    settings.mode = "off";
+  }
+
+  // 🎯 تشخیص خودکار زبان (فقط اگر فعال باشد و override وجود نداشته باشد)
+  if (settings.autoDetectLanguage && !override) {
+    // زبان در content.js تشخیص داده می‌شود و از طریق پیام ارسال می‌شود
+    // در اینجا فقط تنظیمات را برمی‌گردانیم
+  }
+
+  return settings;
+}
+
+async function effectiveModeForHost(host) {
+  const settings = await effectiveSettingsForHost(host);
+  return settings.mode;
 }
 
 // ============ به‌روزرسانی بَدج ============
-
 async function updateBadge(tabId, url) {
   try {
     if (!url) throw new Error("No URL");
@@ -213,15 +147,166 @@ async function updateBadge(tabId, url) {
       color: BADGE_COLOR[mode] ?? BADGE_COLOR.auto,
     });
     log(`Badge updated for ${host} → ${mode}`);
-  } catch (error) {
-    // صفحات داخلی یا نامعتبر — بَدج را پاک کن
+  } catch {
     await chrome.action.setBadgeText({ tabId, text: "" });
-    logError("Badge update failed:", error.message);
   }
 }
 
-// ============ رویدادهای تب ============
+// ============ 📊 آمار ============
+async function updateStats(host, mode, blockCount = 0) {
+  try {
+    const { smartDirectionStats } = await safeStorageGet(
+      "local",
+      "smartDirectionStats",
+    );
+    const stats = smartDirectionStats || {
+      totalSites: 0,
+      totalBlocks: 0,
+      modeChanges: {},
+      sites: {},
+    };
 
+    // به‌روزرسانی سایت
+    if (!stats.sites[host]) {
+      stats.sites[host] = { visits: 0, modes: {} };
+      stats.totalSites++;
+    }
+    stats.sites[host].visits++;
+
+    // به‌روزرسانی حالت‌ها
+    if (!stats.modeChanges[mode]) stats.modeChanges[mode] = 0;
+    stats.modeChanges[mode]++;
+
+    if (!stats.sites[host].modes[mode]) stats.sites[host].modes[mode] = 0;
+    stats.sites[host].modes[mode]++;
+
+    stats.totalBlocks += blockCount;
+    stats.lastUsed = Date.now();
+
+    await safeStorageSet("local", { smartDirectionStats: stats });
+  } catch {
+    // خطا را نادیده بگیر
+  }
+}
+
+// ============ کلیک روی آیکون (چرخش حالت) ============
+chrome.action.onClicked.addListener(async (tab) => {
+  if (!tab.url || tab.url.startsWith("chrome://")) return;
+
+  try {
+    const host = new URL(tab.url).hostname;
+    if (!isValidHost(host)) return;
+
+    const currentMode = await effectiveModeForHost(host);
+    const modes = ["auto", "ltr", "rtl", "off"];
+    let nextIndex = (modes.indexOf(currentMode) + 1) % modes.length;
+    const nextMode = modes[nextIndex];
+
+    const hostsResult = await safeStorageGet("local", "smartDirectionHosts");
+    const hosts = hostsResult.smartDirectionHosts || {};
+    hosts[host] = { mode: nextMode };
+    await safeStorageSet("local", { smartDirectionHosts: hosts });
+
+    await chrome.tabs.sendMessage(tab.id, {
+      type: "smart-direction:apply-now",
+    });
+    updateBadge(tab.id, tab.url);
+
+    // 📊 آمار
+    await updateStats(host, nextMode);
+
+    // 🔔 اعلان
+    const modeNames = {
+      auto: chrome.i18n.getMessage("modeAuto") || "Auto",
+      ltr: chrome.i18n.getMessage("modeLtr") || "LTR",
+      rtl: chrome.i18n.getMessage("modeRtl") || "RTL",
+      off: chrome.i18n.getMessage("modeOff") || "Off",
+    };
+    chrome.scripting
+      .executeScript({
+        target: { tabId: tab.id },
+        func: showToast,
+        args: [`🔄 ${modeNames[nextMode] || nextMode}`, "info"],
+      })
+      .catch(() => {});
+  } catch (error) {
+    logError("Action click error:", error);
+  }
+});
+
+// 🔔 تابع اعلان (برای تزریق)
+function showToast(message, type = "success") {
+  const toast = document.createElement("div");
+  const colors = {
+    success: "#2F7D6E",
+    error: "#B4553B",
+    info: "#3B6CB4",
+    warning: "#F0B400",
+  };
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: ${colors[type] || colors.info}; color: #fff;
+    padding: 10px 20px; border-radius: 10px; font-size: 14px;
+    z-index: 99999; font-family: system-ui, sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: fadeInUp 0.3s ease;
+    direction: ltr;
+  `;
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity 0.3s";
+    setTimeout(() => {
+      toast.remove();
+      style.remove();
+    }, 300);
+  }, 2000);
+}
+
+// ============ میانبرهای صفحه‌کلید ============
+chrome.commands.onCommand.addListener(async (command) => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id || !tab.url || tab.url.startsWith("chrome://")) return;
+
+  const modeMap = {
+    "set-auto": "auto",
+    "set-ltr": "ltr",
+    "set-rtl": "rtl",
+    "set-off": "off",
+  };
+
+  const mode = modeMap[command];
+  if (!mode) return;
+
+  try {
+    const host = new URL(tab.url).hostname;
+    if (!isValidHost(host)) return;
+
+    const hostsResult = await safeStorageGet("local", "smartDirectionHosts");
+    const hosts = hostsResult.smartDirectionHosts || {};
+    hosts[host] = { mode };
+    await safeStorageSet("local", { smartDirectionHosts: hosts });
+
+    await chrome.tabs.sendMessage(tab.id, {
+      type: "smart-direction:apply-now",
+    });
+    updateBadge(tab.id, tab.url);
+    await updateStats(host, mode);
+  } catch (error) {
+    logError("Command error:", error);
+  }
+});
+
+// ============ رویدادهای تب ============
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete" && tab.url) {
     updateBadge(tabId, tab.url);
@@ -232,22 +317,17 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   try {
     const tab = await chrome.tabs.get(tabId);
     if (tab.url) updateBadge(tabId, tab.url);
-  } catch (error) {
-    logError("Tab activation error:", error);
-  }
+  } catch {}
 });
 
 // ============ پیام‌ها ============
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // درخواست به‌روزرسانی بَدج
   if (message?.type === "smart-direction:refresh-badge" && sender.tab?.id) {
     updateBadge(sender.tab.id, sender.tab.url);
     sendResponse({ ok: true });
     return true;
   }
 
-  // دریافت تنظیمات پیش‌فرض
   if (message?.type === "smart-direction:get-defaults") {
     safeStorageGet("sync", "smartDirectionDefaults").then((res) => {
       sendResponse(res.smartDirectionDefaults || DEFAULT_SETTINGS);
@@ -255,7 +335,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // همگام‌سازی تغییرات تنظیمات با تمام تب‌ها
   if (message?.type === "smart-direction:settings-changed") {
     chrome.tabs.query({ url: "<all_urls>" }, (tabs) => {
       for (const tab of tabs) {
@@ -269,13 +348,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ ok: true });
     return true;
   }
+
+  // 📊 دریافت آمار
+  if (message?.type === "smart-direction:get-stats") {
+    safeStorageGet("local", "smartDirectionStats").then((res) => {
+      sendResponse(res.smartDirectionStats || null);
+    });
+    return true;
+  }
+
+  // 🎯 تشخیص زبان از content script
+  if (message?.type === "smart-direction:detected-language") {
+    const { host, direction } = message;
+    if (host && direction) {
+      // اگر حالت خودکار است و تنظیمات اختصاصی وجود ندارد، می‌توانیم پیشنهاد دهیم
+      // اما فعلاً فقط ذخیره می‌کنیم برای استفاده‌ی بعدی
+      safeStorageSet("local", { [`lastDetected_${host}`]: direction }).catch(
+        () => {},
+      );
+    }
+    sendResponse({ ok: true });
+    return true;
+  }
 });
 
-// ============ گوش‌دادن به تغییرات storage ============
-
+// ============ تغییرات storage ============
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "sync" || area === "local") {
-    // تمام تب‌ها را از تغییر مطلع کن
     chrome.tabs.query({}, (tabs) => {
       for (const tab of tabs) {
         if (tab.id && tab.url && !tab.url.startsWith("chrome://")) {

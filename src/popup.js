@@ -26,6 +26,7 @@ const DEFAULT_SETTINGS = {
   mode: "auto",
   threshold: 0.4,
   minStrongChars: 3,
+  autoDetectLanguage: true,
 };
 
 // ============ DOM refs ============
@@ -42,6 +43,8 @@ const statusLine = document.getElementById("statusLine");
 const currentModeDisplay = document.getElementById("currentModeDisplay");
 const processedCount = document.getElementById("processedCount");
 const openOptionsBtn = document.getElementById("openOptionsBtn");
+const applyToAllTabsBtn = document.getElementById("applyToAllTabs");
+const resetToDefaultsBtn = document.getElementById("resetToDefaults");
 
 // ============ وضعیت ============
 let activeTab = null;
@@ -100,18 +103,15 @@ function updateUI(state) {
 async function safeStorageGet(area, keys) {
   try {
     return await chrome.storage[area].get(keys);
-  } catch (error) {
-    console.warn("[SmartDirection] Storage get error:", error);
+  } catch {
     return {};
   }
 }
-
 async function safeStorageSet(area, items) {
   try {
     await chrome.storage[area].set(items);
     return true;
-  } catch (error) {
-    console.warn("[SmartDirection] Storage set error:", error);
+  } catch {
     return false;
   }
 }
@@ -168,6 +168,27 @@ async function clearHostOverride() {
   await safeStorageSet("local", { smartDirectionHosts: hosts });
 }
 
+// ============ 🔄 بازنشانی به پیش‌فرض ============
+async function resetToDefaults() {
+  const confirmMsg =
+    chrome.i18n.getMessage("confirmResetDefaults") ||
+    "تنظیمات به پیش‌فرض بازگردانده شود؟";
+  if (!confirm(confirmMsg)) return;
+  await safeStorageSet("sync", { smartDirectionDefaults: DEFAULT_SETTINGS });
+  await safeStorageSet("local", { smartDirectionHosts: {} });
+  await safeStorageSet("local", { smartDirectionWhitelist: [] });
+  await safeStorageSet("local", { smartDirectionBlacklist: [] });
+  setStatus(
+    chrome.i18n.getMessage("defaultsReset") ||
+      "✅ تنظیمات به پیش‌فرض بازگردانده شد.",
+  );
+  setTimeout(() => {
+    if (chrome.runtime?.openOptionsPage) {
+      chrome.runtime.openOptionsPage();
+    }
+  }, 1000);
+}
+
 // ============ اطلاع‌رسانی به تب فعال ============
 async function notifyActiveTab() {
   if (!activeTab?.id || !host || !isValidHost(host)) return;
@@ -181,17 +202,13 @@ async function notifyActiveTab() {
     await sendMessage();
   } catch (err) {
     try {
-      // تزریق content.js (بدون نیاز به باندل)
       await chrome.scripting.executeScript({
         target: { tabId: activeTab.id },
         files: ["src/content.js"],
       });
       await sendMessage();
-    } catch (injectErr) {
-      console.debug(
-        "[SmartDirection] Cannot inject or notify tab:",
-        injectErr.message,
-      );
+    } catch {
+      console.debug("[SmartDirection] Cannot inject:", err.message);
     }
   }
 
@@ -214,12 +231,13 @@ async function refresh() {
     const response = await chrome.tabs.sendMessage(activeTab.id, {
       type: "smart-direction:get-status",
     });
-    if (response && response.mode) {
-      const modeNames = getModeNames();
-      const modeText = modeNames[response.mode] || response.mode;
+    if (response && response.count !== undefined) {
+      const countText = chrome.i18n.getMessage(
+        "processedCount",
+        String(response.count),
+      );
       processedCount.textContent =
-        chrome.i18n.getMessage("statusBarMode", modeText) ||
-        `حالت: ${modeText}`;
+        countText || `${response.count} بلوک پردازش شد`;
     }
   } catch {
     processedCount.textContent =
@@ -251,6 +269,8 @@ async function init() {
     applyAllHosts.disabled = true;
     resetHostBtn.disabled = true;
     openOptionsBtn.disabled = true;
+    applyToAllTabsBtn.disabled = true;
+    resetToDefaultsBtn.disabled = true;
     setStatus(
       chrome.i18n.getMessage("unsupportedPageError") ||
         "⚠️ صفحه داخلی یا نامعتبر",
@@ -259,6 +279,8 @@ async function init() {
     return;
   }
   openOptionsBtn.disabled = false;
+  applyToAllTabsBtn.disabled = false;
+  resetToDefaultsBtn.disabled = false;
 
   await refresh();
 }
@@ -294,13 +316,12 @@ modeGrid.addEventListener("click", async (event) => {
   }
 });
 
-// تغییر آستانه (لغزیدن)
+// تغییر آستانه
 thresholdRange.addEventListener("input", () => {
   const pct = Number(thresholdRange.value);
   thresholdValue.textContent = `${toPersianDigits(pct)}٪`;
 });
 
-// تغییر آستانه (پایان لغزش)
 thresholdRange.addEventListener("change", async () => {
   if (!host || isApplying) return;
   isApplying = true;
@@ -353,12 +374,44 @@ resetHostBtn.addEventListener("click", async () => {
   }
 });
 
+// 🔄 اعمال روی همه‌ی تب‌ها
+applyToAllTabsBtn.addEventListener("click", async () => {
+  if (!host || isApplying) return;
+  isApplying = true;
+
+  try {
+    const tabs = await chrome.tabs.query({});
+    let count = 0;
+    for (const tab of tabs) {
+      if (tab.id && tab.url && !tab.url.startsWith("chrome://")) {
+        try {
+          await chrome.tabs.sendMessage(tab.id, {
+            type: "smart-direction:apply-now",
+          });
+          count++;
+        } catch {
+          // برخی تب‌ها ممکن است content script نداشته باشند
+        }
+      }
+    }
+    setStatus(`✅ روی ${count} تب اعمال شد.`);
+  } catch (error) {
+    console.error("[SmartDirection] Apply to all tabs error:", error);
+    setStatus("❌ خطا در اعمال روی همه‌ی تب‌ها", true);
+  } finally {
+    isApplying = false;
+  }
+});
+
+// 🔄 بازنشانی به پیش‌فرض
+resetToDefaultsBtn.addEventListener("click", resetToDefaults);
+
 // ============ باز کردن صفحه‌ی تنظیمات ============
 openOptionsBtn.addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
 });
 
-// ============ گوش‌دادن به تغییرات storage ============
+// ============ تغییرات storage ============
 chrome.storage.onChanged.addListener(() => {
   if (host && isValidHost(host)) {
     refresh();

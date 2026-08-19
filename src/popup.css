@@ -17,7 +17,7 @@
 
 body {
   margin: 0;
-  width: 320px;
+  width: 340px;
   background: var(--paper);
   color: var(--ink);
   font-size: 13px;
@@ -244,6 +244,44 @@ main {
   cursor: default;
   text-decoration: none;
 }
+.apply-all-btn {
+  background: none;
+  border: 1px solid var(--ltr);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--ltr);
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  transition: background-color 0.15s ease;
+}
+.apply-all-btn:hover {
+  background-color: #e8f0fe;
+}
+.apply-all-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.reset-defaults-btn {
+  background: none;
+  border: 1px solid #c45a45;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #9a4632;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  transition: background-color 0.15s ease;
+}
+.reset-defaults-btn:hover {
+  background-color: #fdf2ef;
+}
+.reset-defaults-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 .status {
   margin: 0;
@@ -252,7 +290,14 @@ main {
   min-height: 12px;
 }
 
-/* ===== دکمه باز کردن تنظیمات ===== */
+/* ===== دکمه‌های پایین ===== */
+.bottom-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
 .settings-btn {
   background: none;
   border: 1px solid var(--line);
@@ -264,11 +309,120 @@ main {
   width: 100%;
   text-align: center;
   transition: background-color 0.15s ease;
-  margin-top: 4px;
 }
 .settings-btn:hover {
   background-color: #f0efea;
 }
 .settings-btn:active {
   transform: scale(0.98);
+}
+.settings-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.github-link {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  color: #6b6b6b;
+  text-decoration: none;
+  padding: 4px 0;
+}
+.github-link:hover {
+  text-decoration: underline;
+  color: var(--ltr);
+}
+
+/* ===== 🌙 حالت شب ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8e6e0;
+    --paper: #1a1b1e;
+    --line: #3a3b3e;
+    --auto: #4aad8e;
+    --ltr: #5b8cd4;
+    --rtl: #d4755b;
+    --off: #9a9a9a;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .status-bar {
+    background: #2a2b2e;
+    border-color: var(--line);
+  }
+
+  .mode-btn {
+    background: #2a2b2e;
+    border-color: var(--line);
+  }
+  .mode-btn:hover {
+    border-color: #5a5b5e;
+  }
+  .mode-btn[aria-checked="true"] {
+    border-color: var(--ink);
+  }
+
+  .scope-note b {
+    color: var(--ink);
+  }
+
+  .apply-all-btn {
+    border-color: var(--ltr);
+    color: var(--ltr);
+  }
+  .apply-all-btn:hover {
+    background-color: #1a2a3a;
+  }
+
+  .reset-defaults-btn {
+    border-color: #e06b55;
+    color: #e06b55;
+  }
+  .reset-defaults-btn:hover {
+    background-color: #2a1a1a;
+  }
+
+  .settings-btn {
+    color: var(--ltr);
+    border-color: var(--line);
+  }
+  .settings-btn:hover {
+    background-color: #2a2b2e;
+  }
+
+  .reset-btn {
+    color: #e06b55;
+  }
+  .reset-btn:hover {
+    color: #f08b75;
+  }
+
+  .badge-override {
+    background: #f0b400;
+    color: #1a1b1e;
+  }
+
+  .mode-hint,
+  .scope-note,
+  .status-count,
+  .hint,
+  .status {
+    color: #9a9a9a;
+  }
+
+  .threshold-value {
+    color: var(--auto);
+  }
+
+  .github-link {
+    color: #9a9a9a;
+  }
+  .github-link:hover {
+    color: var(--ltr);
+  }
 }

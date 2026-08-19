@@ -26,7 +26,7 @@ body {
 }
 
 .page {
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 28px 20px 48px;
 }
@@ -85,10 +85,19 @@ body {
   margin: 0 0 6px;
   font-size: 16px;
 }
+.card h3 {
+  margin: 12px 0 6px;
+  font-size: 14px;
+}
 .desc {
   margin: 0 0 16px;
   color: #6b6b6b;
   font-size: 13px;
+}
+.hint {
+  margin: 4px 0 0;
+  color: #6b6b6b;
+  font-size: 12px;
 }
 
 .field {
@@ -100,6 +109,20 @@ body {
   font-size: 13px;
   margin-bottom: 6px;
 }
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--auto);
+}
+
 .label-row {
   display: flex;
   justify-content: space-between;
@@ -177,6 +200,7 @@ input[type="range"] {
   min-height: 18px;
 }
 
+/* ===== لیست‌ها ===== */
 .host-list {
   display: flex;
   flex-direction: column;
@@ -199,6 +223,7 @@ input[type="range"] {
   direction: ltr;
   text-align: right;
   unicode-bidi: plaintext;
+  word-break: break-all;
 }
 .host-meta {
   font-size: 12px;
@@ -219,6 +244,107 @@ input[type="range"] {
   padding: 8px 0;
 }
 
+.add-host {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.add-host input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  color: var(--ink);
+}
+.add-host input:focus {
+  outline: none;
+  border-color: var(--auto);
+}
+.add-host button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--auto);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+.add-host button:hover {
+  opacity: 0.9;
+}
+
+/* ===== پشتیبان‌گیری ===== */
+.backup-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ===== آمار ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat-item {
+  background: #faf9f6;
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.stat-label {
+  color: #6b6b6b;
+  font-size: 12px;
+}
+.stat-value {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.stats-modes h4 {
+  margin: 12px 0 8px;
+  font-size: 14px;
+}
+.mode-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.mode-bar-label {
+  min-width: 60px;
+  font-size: 12px;
+}
+.mode-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.mode-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.mode-bar-count {
+  font-size: 11px;
+  color: #6b6b6b;
+  min-width: 60px;
+  text-align: left;
+}
+.stats-empty {
+  color: #8a8a8a;
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+/* ===== میانبر ===== */
 .shortcut-box {
   background: #f0efea;
   border-radius: 8px;
@@ -254,4 +380,126 @@ kbd {
   display: flex;
   justify-content: center;
   gap: 8px;
+  align-items: center;
+}
+.footer-link {
+  color: #8a8a8a;
+  text-decoration: none;
+}
+.footer-link:hover {
+  text-decoration: underline;
+  color: var(--ltr);
+}
+
+/* ===== لیست سفید/سیاه جداگانه ===== */
+.list-section {
+  margin-bottom: 16px;
+}
+.list-section:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== 🌙 حالت شب ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8e6e0;
+    --paper: #1a1b1e;
+    --card: #2a2b2e;
+    --line: #3a3b3e;
+    --auto: #4aad8e;
+    --ltr: #5b8cd4;
+    --rtl: #d4755b;
+    --off: #9a9a9a;
+    --browser: #9a7abe;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .card {
+    background: var(--card);
+    border-color: var(--line);
+  }
+
+  .chip {
+    background: #3a3b3e;
+    border-color: var(--line);
+  }
+  .chip:hover {
+    border-color: #5a5b5e;
+  }
+  .chip[aria-checked="true"] {
+    border-color: var(--ink);
+  }
+
+  .host-item {
+    background: #3a3b3e;
+    border-color: var(--line);
+  }
+
+  .shortcut-box {
+    background: #3a3b3e;
+  }
+  kbd {
+    background: #2a2b2e;
+    border-color: #5a5b5e;
+  }
+
+  .primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .danger-outline {
+    color: #e06b55;
+    border-color: #e06b55;
+  }
+  .danger-outline:hover {
+    background: #2a1a1a;
+  }
+
+  .subtitle,
+  .desc,
+  .host-meta,
+  .empty-hosts,
+  .page-footer,
+  .stat-label,
+  .mode-bar-count,
+  .hint {
+    color: #9a9a9a;
+  }
+
+  .val {
+    color: var(--auto);
+  }
+
+  .host-remove {
+    color: #e06b55;
+  }
+  .host-remove:hover {
+    color: #f08b75;
+  }
+
+  .link {
+    color: var(--ltr);
+  }
+
+  .stat-item {
+    background: #3a3b3e;
+  }
+
+  .add-host input {
+    background: #2a2b2e;
+    color: var(--ink);
+    border-color: var(--line);
+  }
+
+  .footer-link {
+    color: #9a9a9a;
+  }
+  .footer-link:hover {
+    color: var(--ltr);
+  }
 }

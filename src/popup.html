@@ -102,15 +102,34 @@
           🗑️
           <span data-i18n="removeHostOverride">حذف تنظیم اختصاصی این سایت</span>
         </button>
+        <!-- 🔄 اعمال روی همه‌ی تب‌ها -->
+        <button type="button" class="apply-all-btn" id="applyToAllTabs">
+          📋 <span data-i18n="applyToAllTabs">اعمال روی همه‌ی تب‌ها</span>
+        </button>
+        <!-- 🔄 بازنشانی به پیش‌فرض -->
+        <button type="button" class="reset-defaults-btn" id="resetToDefaults">
+          🔄 <span data-i18n="resetToDefaults">بازنشانی به پیش‌فرض</span>
+        </button>
       </section>
 
-      <button type="button" class="settings-btn" id="openOptionsBtn">
-        ⚙️
-        <span data-i18n="openAdvancedSettings"
-          >تنظیمات پیشرفته (همه‌ی سایت‌ها)</span
-        >
-      </button>
       <p class="status" id="statusLine" aria-live="polite"></p>
+
+      <div class="bottom-actions">
+        <button type="button" class="settings-btn" id="openOptionsBtn">
+          ⚙️
+          <span data-i18n="openAdvancedSettings"
+            >تنظیمات پیشرفته (همه‌ی سایت‌ها)</span
+          >
+        </button>
+        <!-- 🔗 لینک گیت‌هاب -->
+        <a
+          href="https://github.com/idmdakhi/Smart-Direction-RTL-LTR"
+          target="_blank"
+          class="github-link"
+        >
+          <span data-i18n="githubLink">🌐 مشاهده در گیت‌هاب</span>
+        </a>
+      </div>
     </main>
 
     <script type="module" src="popup.js"></script>

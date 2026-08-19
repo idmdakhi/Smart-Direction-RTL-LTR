@@ -116,7 +116,7 @@
     "description": "Shortcut section title"
   },
   "shortcutDesc": {
-    "message": "Pressing the shortcut cycles through modes: Auto → LTR → RTL → dir=auto → Off and shows a brief notification.",
+    "message": "Pressing the shortcut cycles through modes: Auto → LTR → RTL → Off and shows a brief notification.",
     "description": "Shortcut description"
   },
   "shortcutDefault": {
@@ -138,6 +138,10 @@
   "applyToAll": {
     "message": "Apply this mode to all sites by default",
     "description": "Checkbox label"
+  },
+  "applyToAllTabs": {
+    "message": "Apply to All Tabs",
+    "description": "Apply to all tabs button"
   },
   "removeHostOverride": {
     "message": "🗑️ Remove override for this site",

@@ -1,33 +1,15 @@
 /**
- * Smart Direction — Content Script (نسخه بهبودیافته)
+ * Smart Direction — Content Script (نسخه بهبودیافته با IntersectionObserver)
  * تشخیص هوشمند جهت با پشتیبانی از Shadow DOM، کارایی بالا، و مدیریت خطا
- */
-/**
- * Smart Direction — Central Configuration
- * تمام ثابت‌ها و تنظیمات پیش‌فرض در اینجا متمرکز شده‌اند
  */
 
 const DEFAULT_SETTINGS = {
-  mode: "auto", // "auto" | "ltr" | "rtl" | "off"
-  threshold: 0.4, // نسبت RTL لازم برای تشخیص (۰ تا ۱)
-  minStrongChars: 3, // حداقل حروف قوی برای تصمیم‌گیری
+  mode: "auto",
+  threshold: 0.4,
+  minStrongChars: 3,
+  autoDetectLanguage: true,
 };
 
-const BADGE_TEXT = {
-  auto: "A",
-  ltr: "L",
-  rtl: "R",
-  off: "",
-};
-
-const BADGE_COLOR = {
-  auto: "#2F7D6E",
-  ltr: "#3B6CB4",
-  rtl: "#B4553B",
-  off: "#8A8A8A",
-};
-
-// انتخاب‌گرهای بلوک‌های متنی
 const BLOCK_SELECTOR = [
   "p",
   "li",
@@ -51,7 +33,6 @@ const BLOCK_SELECTOR = [
   "a",
 ].join(",");
 
-// انتخاب‌گرهای بلوک‌های کد
 const CODE_SELECTOR = [
   "code",
   "pre",
@@ -71,7 +52,6 @@ const CODE_SELECTOR = [
   '[aria-label*="code" i]',
 ].join(",");
 
-// برچسب‌هایی که هرگز پردازش نمی‌شوند
 const SKIP_TAGS = new Set([
   "SCRIPT",
   "STYLE",
@@ -86,70 +66,41 @@ const SKIP_TAGS = new Set([
   "TEMPLATE",
 ]);
 
-// الگوهای کاراکترهای قوی
 const RTL_STRONG =
   /[\u0590-\u05FF\u0600-\u06FF\u0700-\u074F\u0750-\u077F\u08A0-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g;
 const LTR_STRONG = /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF]/g;
 
-/**
- * Smart Direction — Utilities
- * توابع عمومی، مدیریت خطا، و عملیات ذخیره‌سازی امن
- */
-
-// ============ ذخیره‌سازی امن ============
-
+// ============ توابع کمکی ============
 async function safeStorageGet(area, keys) {
   try {
     return await chrome.storage[area].get(keys);
-  } catch (error) {
-    console.warn("[SmartDirection] Storage get error:", error);
+  } catch {
     return {};
   }
 }
 
-async function safeStorageSet(area, items) {
-  try {
-    await chrome.storage[area].set(items);
-    return true;
-  } catch (error) {
-    console.warn("[SmartDirection] Storage set error:", error);
-    return false;
-  }
-}
-
-// ============ اعتبارسنجی میزبان ============
-
 function isValidHost(host) {
   if (!host || typeof host !== "string") return false;
-  // فقط کاراکترهای مجاز: حروف، اعداد، نقطه، خط تیره، زیرخط
   return /^[a-zA-Z0-9.\-_]+$/.test(host);
 }
 
-// ============ مدیریت لاگ ============
-
 const DEBUG = false;
-
 function log(...args) {
   if (DEBUG) console.log("[SmartDirection]", ...args);
 }
-
 function logError(...args) {
   console.error("[SmartDirection]", ...args);
 }
-
-// ============ هش سریع برای امضای متن ============
 
 function fastHash(text) {
   let hash = 0;
   for (let i = 0; i < text.length; i++) {
     const char = text.charCodeAt(i);
     hash = (hash << 5) - hash + char;
-    hash |= 0; // Convert to 32bit integer
+    hash |= 0;
   }
   return hash.toString(36);
 }
-
-// ============ تشخیص حالت‌های خاص ============
 
 function isCodeLike(text) {
   if (!text || text.length < 5) return false;
@@ -157,26 +108,22 @@ function isCodeLike(text) {
   const matches = text.match(symbols);
   if (!matches) return false;
   const ratio = matches.length / text.length;
-  return ratio > 0.15; // بیش از ۱۵٪ نمادهای برنامه‌نویسی
-}
-
-// ============ تبدیل اعداد به فارسی ============
-
-function toPersianDigits(n) {
-  return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+  return ratio > 0.15;
 }
 
 // ============ وضعیت داخلی ============
-
 let settings = { ...DEFAULT_SETTINGS };
 const lastSignature = new WeakMap();
 let idleHandle = null;
 let mutationTimer = null;
 const pendingRoots = new Set();
 let observer = null;
+let processedBlockCount = 0;
+let whitelist = [];
+let blacklist = [];
+let intersectionObserver = null; // ⚡ جدید
 
 // ============ توابع کمکی ============
-
 function currentHost() {
   try {
     return location.hostname || "";
@@ -193,7 +140,6 @@ function isEditable(el) {
 
 function isCodeElement(el) {
   if (el.closest(CODE_SELECTOR)) return true;
-  // تشخیص بر اساس محتوای متن (اگر خیلی شبیه کد باشد)
   const text = el.textContent;
   if (text && text.length > 20 && isCodeLike(text)) return true;
   return false;
@@ -211,8 +157,54 @@ function directTextLength(el) {
   return len > 0 ? len : el.textContent.trim().length;
 }
 
-// ============ تشخیص جهت ============
+// 🎯 تشخیص زبان صفحه
+function detectPageLanguage() {
+  try {
+    // از تگ html
+    const htmlLang = document.documentElement.lang;
+    if (htmlLang) {
+      const rtlLangs = ["fa", "ar", "he", "ur", "ku", "ps", "sd"];
+      if (rtlLangs.some((lang) => htmlLang.startsWith(lang))) return "rtl";
+      if (
+        htmlLang.startsWith("en") ||
+        htmlLang.startsWith("fr") ||
+        htmlLang.startsWith("de") ||
+        htmlLang.startsWith("es")
+      )
+        return "ltr";
+    }
 
+    // از متا تگ
+    const meta = document.querySelector('meta[name="language"]');
+    if (meta) {
+      const lang = meta.content.toLowerCase();
+      const rtlLangs = ["fa", "ar", "he", "ur", "ku", "ps", "sd"];
+      if (rtlLangs.some((l) => lang.includes(l))) return "rtl";
+      if (["en", "fr", "de", "es", "it", "pt"].some((l) => lang.includes(l)))
+        return "ltr";
+    }
+
+    // از محتوای متن (حداقل ۲۰۰ کاراکتر)
+    const textSample = document.body?.innerText?.slice(0, 500);
+    if (textSample && textSample.length > 50) {
+      const rtlMatches = textSample.match(RTL_STRONG);
+      const ltrMatches = textSample.match(LTR_STRONG);
+      const rtlCount = rtlMatches ? rtlMatches.length : 0;
+      const ltrCount = ltrMatches ? ltrMatches.length : 0;
+      const total = rtlCount + ltrCount;
+      if (total > 10) {
+        const ratio = rtlCount / total;
+        if (ratio > 0.6) return "rtl";
+        if (ratio < 0.4) return "ltr";
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// ============ تشخیص جهت ============
 function detectDirection(text) {
   const rtlMatches = text.match(RTL_STRONG);
   const ltrMatches = text.match(LTR_STRONG);
@@ -236,7 +228,6 @@ function clearDir(el) {
 }
 
 // ============ پردازش یک عنصر ============
-
 function processElement(el) {
   try {
     if (!(el instanceof Element)) return;
@@ -248,22 +239,20 @@ function processElement(el) {
       return;
     }
 
-    // عناصر کد
     if (isCodeElement(el)) {
       setDir(el, "ltr");
       el.style.unicodeBidi = "plaintext";
       return;
     }
 
-    // حالت‌های اجباری
     if (settings.mode === "ltr" || settings.mode === "rtl") {
       const text = el.textContent.trim();
       if (text.length === 0) return;
       setDir(el, settings.mode);
+      processedBlockCount++;
       return;
     }
 
-    // حالت خودکار
     const text = el.textContent;
     if (!text || text.trim().length < 2) return;
 
@@ -274,18 +263,17 @@ function processElement(el) {
     if (dir) {
       setDir(el, dir);
       lastSignature.set(el, signature);
+      processedBlockCount++;
     }
   } catch (error) {
     logError("processElement error:", error);
   }
 }
 
-// ============ جمع‌آوری عناصر نامزد (با پشتیبانی از Shadow DOM) ============
-
+// ============ جمع‌آوری عناصر نامزد ============
 function collectCandidates(root) {
   const candidates = [];
 
-  // پردازش خود ریشه اگر واجد شرایط باشد
   if (
     root instanceof Element &&
     root.matches(BLOCK_SELECTOR) &&
@@ -294,7 +282,6 @@ function collectCandidates(root) {
     candidates.push(root);
   }
 
-  // جستجوی بلوک‌ها در داخل ریشه
   const blocks = root.querySelectorAll
     ? root.querySelectorAll(BLOCK_SELECTOR)
     : [];
@@ -302,13 +289,11 @@ function collectCandidates(root) {
     if (!hasBlockDescendant(el)) candidates.push(el);
   }
 
-  // بلوک‌های کد (حتی تودرتو)
   const codeBlocks = root.querySelectorAll
     ? root.querySelectorAll(CODE_SELECTOR)
     : [];
   for (const el of codeBlocks) candidates.push(el);
 
-  // برگ‌های عمومی (div/span با متن مستقیم)
   const genericLeaves = root.querySelectorAll
     ? root.querySelectorAll("div, span")
     : [];
@@ -321,7 +306,6 @@ function collectCandidates(root) {
     }
   }
 
-  // ===== پشتیبانی از Shadow DOM (حالت open) =====
   if (root.querySelectorAll) {
     const allElements = root.querySelectorAll("*");
     for (const el of allElements) {
@@ -344,15 +328,53 @@ function processRoot(root) {
   }
 }
 
-// ============ اسکن اولیه با اولویت بندی ============
-
+// ============ اسکن اولیه با IntersectionObserver ============
 function processDocument() {
   if (idleHandle) return;
+
+  // ⚡ استفاده از IntersectionObserver برای پردازش تدریجی
+  if ("IntersectionObserver" in window && !intersectionObserver) {
+    intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const el = entry.target;
+            processElement(el);
+            intersectionObserver.unobserve(el);
+            // همچنین فرزندان را پردازش کن
+            const children = el.querySelectorAll(BLOCK_SELECTOR);
+            for (const child of children) {
+              if (!hasBlockDescendant(child)) {
+                processElement(child);
+              }
+            }
+          }
+        }
+      },
+      {
+        root: null,
+        rootMargin: "200px",
+        threshold: 0.01,
+      },
+    );
+
+    // مشاهده‌ی تمام عناصر بالقوه
+    const allElements = document.querySelectorAll(
+      `${BLOCK_SELECTOR}, ${CODE_SELECTOR}, div, span`,
+    );
+    for (const el of allElements) {
+      if (el.children.length === 0 || el.matches(CODE_SELECTOR)) {
+        intersectionObserver.observe(el);
+      }
+    }
+  }
+
+  // همچنین پردازش اولیه با IdleCallback
   const run = () => {
     idleHandle = null;
     if (document.body) {
       processRoot(document.body);
-      // همچنین ریشه‌های شادو در سطح سند
+      // ریشه‌های شادو
       if (document.documentElement) {
         const allWithShadow = document.querySelectorAll("*");
         for (const el of allWithShadow) {
@@ -372,18 +394,27 @@ function processDocument() {
   }
 }
 
-// ============ مشاهده تغییرات DOM (بهینه‌شده) ============
-
+// ============ مشاهده تغییرات DOM ============
 function scheduleMutationProcessing(node) {
   pendingRoots.add(node);
   clearTimeout(mutationTimer);
-  // تأخیر کوتاه‌تر برای واکنش سریع‌تر
   mutationTimer = setTimeout(() => {
     const roots = Array.from(pendingRoots);
     pendingRoots.clear();
     for (const root of roots) {
       if (root.isConnected === false && root !== document) continue;
       processRoot(root);
+      // ⚡ اضافه کردن به IntersectionObserver
+      if (intersectionObserver && root instanceof Element) {
+        const newElements = root.querySelectorAll(
+          `${BLOCK_SELECTOR}, ${CODE_SELECTOR}, div, span`,
+        );
+        for (const el of newElements) {
+          if (el.children.length === 0 || el.matches(CODE_SELECTOR)) {
+            intersectionObserver.observe(el);
+          }
+        }
+      }
     }
   }, 150);
 }
@@ -398,9 +429,19 @@ function observeChanges() {
         for (const node of mutation.addedNodes) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             scheduleMutationProcessing(node);
-            // همچنین Shadow DOM داخل گره اضافه‌شده
             if (node.shadowRoot && node.shadowRoot.mode === "open") {
               scheduleMutationProcessing(node.shadowRoot);
+            }
+            // ⚡ اضافه کردن به IntersectionObserver
+            if (intersectionObserver) {
+              const newElements = node.querySelectorAll(
+                `${BLOCK_SELECTOR}, ${CODE_SELECTOR}, div, span`,
+              );
+              for (const el of newElements) {
+                if (el.children.length === 0 || el.matches(CODE_SELECTOR)) {
+                  intersectionObserver.observe(el);
+                }
+              }
             }
           }
         }
@@ -424,19 +465,23 @@ function observeChanges() {
 }
 
 // ============ بارگذاری تنظیمات ============
-
 async function loadSettings() {
   try {
     const host = currentHost();
     if (!isValidHost(host)) {
       settings = { ...DEFAULT_SETTINGS };
+      whitelist = [];
+      blacklist = [];
       return;
     }
 
-    const [defaultsResult, hostsResult] = await Promise.all([
-      safeStorageGet("sync", "smartDirectionDefaults"),
-      safeStorageGet("local", "smartDirectionHosts"),
-    ]);
+    const [defaultsResult, hostsResult, whitelistResult, blacklistResult] =
+      await Promise.all([
+        safeStorageGet("sync", "smartDirectionDefaults"),
+        safeStorageGet("local", "smartDirectionHosts"),
+        safeStorageGet("local", "smartDirectionWhitelist"),
+        safeStorageGet("local", "smartDirectionBlacklist"),
+      ]);
 
     const globalDefaults = {
       ...DEFAULT_SETTINGS,
@@ -444,8 +489,36 @@ async function loadSettings() {
     };
     const hosts = hostsResult.smartDirectionHosts || {};
     const hostOverride = hosts[host];
+    whitelist = whitelistResult.smartDirectionWhitelist || [];
+    blacklist = blacklistResult.smartDirectionBlacklist || [];
 
-    settings = { ...globalDefaults, ...(hostOverride || {}) };
+    let settingsTemp = { ...globalDefaults, ...(hostOverride || {}) };
+
+    // 📋 لیست‌های سفید/سیاه
+    if (blacklist.includes(host)) {
+      settingsTemp.mode = "off";
+    } else if (whitelist.length > 0 && !whitelist.includes(host)) {
+      settingsTemp.mode = "off";
+    }
+
+    // 🎯 تشخیص خودکار زبان (فقط اگر فعال باشد و override وجود نداشته باشد)
+    if (settingsTemp.autoDetectLanguage && !hostOverride) {
+      const detected = detectPageLanguage();
+      if (detected) {
+        settingsTemp.mode = detected;
+        log("Detected language direction:", detected);
+        // ارسال به background برای آمار
+        chrome.runtime
+          .sendMessage({
+            type: "smart-direction:detected-language",
+            host: host,
+            direction: detected,
+          })
+          .catch(() => {});
+      }
+    }
+
+    settings = settingsTemp;
     log("Settings loaded:", settings);
   } catch (error) {
     logError("loadSettings error:", error);
@@ -453,18 +526,32 @@ async function loadSettings() {
   }
 }
 
+function shouldProcess() {
+  const host = currentHost();
+  if (!host || !isValidHost(host)) return false;
+  if (blacklist.includes(host)) return false;
+  if (whitelist.length > 0 && !whitelist.includes(host)) return false;
+  return true;
+}
+
 function reapplyEverything() {
-  // پاک کردن حافظه‌ی امضاها
-  // (امضاها با تغییر تنظیمات نامعتبر می‌شوند)
-  // اما WeakMap قابل پاک کردن نیست، پس با تغییر signature باعث می‌شویم دوباره محاسبه شود
-  // بهتر است از یک شماره نسخه استفاده کنیم، اما برای سادگی، همه‌ی عناصر را دوباره پردازش می‌کنیم
   try {
+    if (!shouldProcess()) {
+      // اگر در لیست سیاه است، همه‌ی dirها را پاک کن
+      const allElements = document.querySelectorAll("*");
+      for (const el of allElements) {
+        if (el.hasAttribute("dir")) clearDir(el);
+      }
+      return;
+    }
+
     const allElements = document.querySelectorAll("*");
     for (const el of allElements) {
       if (el.hasAttribute("dir") && settings.mode === "off") {
         clearDir(el);
       }
     }
+    processedBlockCount = 0;
     processRoot(document.body || document.documentElement);
     log("Reapplied settings");
   } catch (error) {
@@ -473,12 +560,14 @@ function reapplyEverything() {
 }
 
 // ============ راه‌اندازی ============
-
 async function init() {
   try {
     await loadSettings();
-    processDocument();
-    observeChanges();
+    if (shouldProcess()) {
+      processedBlockCount = 0;
+      processDocument();
+      observeChanges();
+    }
     log("Content script initialized");
   } catch (error) {
     logError("Init error:", error);
@@ -486,18 +575,27 @@ async function init() {
 }
 
 // ============ گوش‌دادن به پیام‌ها ============
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === "smart-direction:apply-now") {
     loadSettings().then(() => {
       reapplyEverything();
-      sendResponse({ ok: true, host: currentHost(), mode: settings.mode });
+      sendResponse({
+        ok: true,
+        host: currentHost(),
+        mode: settings.mode,
+        count: processedBlockCount,
+      });
     });
     return true;
   }
 
   if (message?.type === "smart-direction:get-status") {
-    sendResponse({ ok: true, host: currentHost(), mode: settings.mode });
+    sendResponse({
+      ok: true,
+      host: currentHost(),
+      mode: settings.mode,
+      count: processedBlockCount,
+    });
     return true;
   }
 
@@ -510,8 +608,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// ============ گوش‌دادن به تغییرات storage ============
-
+// ============ تغییرات storage ============
 chrome.storage.onChanged.addListener(async (changes, area) => {
   if (area !== "sync" && area !== "local") return;
   await loadSettings();
@@ -519,7 +616,6 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
 });
 
 // ============ اجرا ============
-
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
 } else {

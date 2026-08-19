@@ -21,6 +21,7 @@
         </div>
       </header>
 
+      <!-- پیش‌فرض سراسری -->
       <section class="card">
         <h2 data-i18n="globalDefaultsTitle">پیش‌فرض سراسری</h2>
         <p class="desc" data-i18n="globalDefaultsDesc">
@@ -107,6 +108,19 @@
           />
         </div>
 
+        <div class="field">
+          <label class="checkbox-label">
+            <input type="checkbox" id="autoDetectLanguage" />
+            <span data-i18n="autoDetectLanguage"
+              >🎯 تشخیص خودکار زبان صفحه</span
+            >
+          </label>
+          <p class="hint" data-i18n="autoDetectLanguageHint">
+            در حالت خودکار، زبان صفحه را تشخیص داده و جهت مناسب را انتخاب
+            می‌کند.
+          </p>
+        </div>
+
         <button
           type="button"
           class="primary"
@@ -118,6 +132,45 @@
         <p class="status" id="globalStatus" aria-live="polite"></p>
       </section>
 
+      <!-- 📋 لیست سفید/سیاه -->
+      <section class="card">
+        <h2 data-i18n="whitelistBlacklistTitle">📋 لیست سفید و سیاه</h2>
+        <p class="desc" data-i18n="whitelistBlacklistDesc">
+          سایت‌هایی که همیشه پردازش شوند (سفید) یا هرگز پردازش نشوند (سیاه).
+        </p>
+
+        <div class="list-section">
+          <h3 data-i18n="whitelistTitle">✅ سایت‌های سفید</h3>
+          <div id="whitelist" class="host-list"></div>
+          <div class="add-host">
+            <input
+              type="text"
+              id="whitelistInput"
+              placeholder="مثال: google.com"
+            />
+            <button type="button" id="addWhitelist" data-i18n="add">
+              افزودن
+            </button>
+          </div>
+        </div>
+
+        <div class="list-section">
+          <h3 data-i18n="blacklistTitle">🚫 سایت‌های سیاه</h3>
+          <div id="blacklist" class="host-list"></div>
+          <div class="add-host">
+            <input
+              type="text"
+              id="blacklistInput"
+              placeholder="مثال: facebook.com"
+            />
+            <button type="button" id="addBlacklist" data-i18n="add">
+              افزودن
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- تنظیمات اختصاصی -->
       <section class="card">
         <h2 data-i18n="hostOverridesTitle">تنظیمات اختصاصی سایت‌ها</h2>
         <p class="desc" data-i18n="hostOverridesDesc">
@@ -134,12 +187,53 @@
         </button>
       </section>
 
+      <!-- 💾 پشتیبان‌گیری -->
       <section class="card">
-        <h2 data-i18n="shortcutTitle">میانبر صفحه‌کلید</h2>
+        <h2 data-i18n="backupTitle">💾 پشتیبان‌گیری و بازیابی</h2>
+        <p class="desc" data-i18n="backupDesc">
+          تنظیمات خود را ذخیره کنید تا بتوانید در دستگاه دیگر بازیابی کنید.
+        </p>
+        <div class="backup-actions">
+          <button
+            type="button"
+            class="primary"
+            id="exportSettings"
+            data-i18n="exportSettings"
+          >
+            📤 خروجی تنظیمات
+          </button>
+          <button
+            type="button"
+            class="primary"
+            id="importSettings"
+            data-i18n="importSettings"
+          >
+            📥 ورودی تنظیمات
+          </button>
+          <input
+            type="file"
+            id="importFile"
+            accept=".json"
+            style="display: none"
+          />
+        </div>
+        <p class="status" id="backupStatus"></p>
+      </section>
+
+      <!-- 📊 آمار -->
+      <section class="card">
+        <h2 data-i18n="statsTitle">📊 آمار استفاده</h2>
+        <div id="statsContainer">
+          <p class="stats-empty" data-i18n="statsLoading">در حال بارگذاری...</p>
+        </div>
+      </section>
+
+      <!-- میانبر -->
+      <section class="card">
+        <h2 data-i18n="shortcutTitle">⌨️ میانبر صفحه‌کلید</h2>
         <p class="desc" data-i18n="shortcutDesc">
-          با فشردن میانبر، حالت جهت برای سایت فعلی بین
-          <b>خودکار → LTR → RTL → dir=auto → خاموش</b> می‌چرخد و یک اعلان کوتاه
-          نمایش داده می‌شود.
+          با فشردن میانبر، حالت جهت برای سایت فعلی بین خودکار → LTR → RTL →
+          خاموش می‌چرخد و یک اعلان کوتاه نمایش داده می‌شود.
         </p>
         <p class="shortcut-box">
           <span data-i18n="shortcutDefault">پیش‌فرض:</span> <kbd>Alt</kbd> +
@@ -154,6 +248,13 @@
         <span id="footerVersion">نسخه —</span>
         <span>·</span>
         <span data-i18n="footerTagline">تشخیص هوشمند RTL/LTR</span>
+        <span>·</span>
+        <a
+          href="https://github.com/idmdakhi/Smart-Direction-RTL-LTR"
+          target="_blank"
+          class="footer-link"
+          >GitHub</a
+        >
       </footer>
     </div>
     <script src="options.js"></script>
