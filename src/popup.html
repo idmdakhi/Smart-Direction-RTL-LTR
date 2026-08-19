@@ -2,79 +2,133 @@
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
+    <meta name="color-scheme" content="light dark" />
     <title>Smart Direction</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <header class="header">
-      <div class="glyph" aria-hidden="true">
-        <span class="glyph-a">A</span>
-        <span class="glyph-arrow">⇄</span>
-        <span class="glyph-alef">ا</span>
+    <header class="app-header">
+      <div class="brand-mark" aria-hidden="true">
+        <b>A</b><span>⇄</span><b>ا</b>
       </div>
-      <div class="title-block">
+      <div class="brand-copy">
         <h1 data-i18n="appName">Smart Direction</h1>
-        <p class="host" id="hostLabel">—</p>
-        <span class="badge-override" id="overrideBadge" style="display: none"
-          >⚡ <span data-i18n="overrideBadge">اختصاصی</span></span
-        >
+        <div class="host-line"><span id="hostLabel">—</span></div>
       </div>
+      <button
+        class="icon-btn"
+        id="themeCycle"
+        type="button"
+        aria-label="تغییر تم"
+        title="تغییر تم"
+      >
+        ◐
+      </button>
     </header>
 
     <main>
-      <!-- وضعیت فعلی -->
-      <section class="status-bar" id="statusBar">
-        <span class="status-mode" id="currentModeDisplay">
-          <span data-i18n="modeAuto">خودکار</span>
-        </span>
-        <span class="status-count" id="processedCount">
-          <span data-i18n="processedCount">۰ بلوک پردازش شد</span>
-        </span>
+      <section class="status-card" id="statusBar">
+        <div class="status-main">
+          <span class="status-dot" id="statusDot"></span>
+          <div>
+            <div class="eyebrow" data-i18n="statusBarModeLabel">وضعیت فعلی</div>
+            <div class="status-mode" id="currentModeDisplay">خودکار</div>
+          </div>
+          <span class="badge-override" id="overrideBadge" hidden
+            >⚡ <span data-i18n="overrideBadge">اختصاصی</span></span
+          >
+        </div>
+        <div class="status-meta">
+          <span class="status-pill"
+            ><strong id="processedCountValue">۰</strong>
+            <span data-i18n="processedBlocksShort">بلوک</span></span
+          >
+          <span class="status-pill status-live"
+            ><i></i><span data-i18n="statusLive">فعال</span></span
+          >
+        </div>
       </section>
 
-      <!-- انتخاب حالت -->
-      <section class="mode-section" aria-label="انتخاب حالت">
+      <section class="section-block">
+        <div class="section-heading">
+          <div>
+            <h2 data-i18n="modeSectionTitle">حالت جهت‌دهی</h2>
+            <p data-i18n="modeSectionDesc">
+              جهت نمایش متن این سایت را انتخاب کنید.
+            </p>
+          </div>
+        </div>
         <div
           class="mode-grid"
           id="modeGrid"
           role="radiogroup"
           aria-label="حالت جهت‌دهی"
         >
-          <button type="button" class="mode-btn" data-mode="auto">
-            <span class="mode-dot mode-dot--auto"></span>
-            <span class="mode-name" data-i18n="modeAuto">خودکار</span>
-            <span class="mode-hint" data-i18n="modeAutoHint"
-              >بر اساس محتوا</span
+          <button
+            type="button"
+            class="mode-btn mode-auto"
+            data-mode="auto"
+            role="radio"
+          >
+            <span class="mode-icon">A</span
+            ><span
+              ><b data-i18n="modeAuto">خودکار</b
+              ><small data-i18n="modeAutoHint">بر اساس محتوا</small></span
             >
           </button>
-          <button type="button" class="mode-btn" data-mode="ltr">
-            <span class="mode-dot mode-dot--ltr"></span>
-            <span class="mode-name" data-i18n="modeLtr">همیشه LTR</span>
-            <span class="mode-hint" data-i18n="modeLtrHint">چپ‌به‌راست</span>
+          <button
+            type="button"
+            class="mode-btn mode-ltr"
+            data-mode="ltr"
+            role="radio"
+          >
+            <span class="mode-icon">L</span
+            ><span
+              ><b data-i18n="modeLtr">همیشه LTR</b
+              ><small data-i18n="modeLtrHint">چپ‌به‌راست</small></span
+            >
           </button>
-          <button type="button" class="mode-btn" data-mode="rtl">
-            <span class="mode-dot mode-dot--rtl"></span>
-            <span class="mode-name" data-i18n="modeRtl">همیشه RTL</span>
-            <span class="mode-hint" data-i18n="modeRtlHint">راست‌به‌چپ</span>
+          <button
+            type="button"
+            class="mode-btn mode-rtl"
+            data-mode="rtl"
+            role="radio"
+          >
+            <span class="mode-icon">R</span
+            ><span
+              ><b data-i18n="modeRtl">همیشه RTL</b
+              ><small data-i18n="modeRtlHint">راست‌به‌چپ</small></span
+            >
           </button>
-          <button type="button" class="mode-btn" data-mode="off">
-            <span class="mode-dot mode-dot--off"></span>
-            <span class="mode-name" data-i18n="modeOff">خاموش</span>
-            <span class="mode-hint" data-i18n="modeOffHint">دست‌نخورده</span>
+          <button
+            type="button"
+            class="mode-btn mode-off"
+            data-mode="off"
+            role="radio"
+          >
+            <span class="mode-icon">×</span
+            ><span
+              ><b data-i18n="modeOff">خاموش</b
+              ><small data-i18n="modeOffHint">دست‌نخورده</small></span
+            >
           </button>
         </div>
-        <p class="scope-note" id="scopeNote">
+        <p class="scope-note">
           <span data-i18n="scopeNotePrefix">این تنظیم فقط برای</span>
           <b id="scopeHost">این سایت</b>
           <span data-i18n="scopeNoteSuffix">ذخیره می‌شود.</span>
         </p>
       </section>
 
-      <!-- آستانه تشخیص -->
-      <section class="threshold-section">
-        <div class="threshold-label">
-          <span data-i18n="thresholdLabel">آستانهٔ تشخیص RTL</span>
-          <span class="threshold-value" id="thresholdValue">۴۰٪</span>
+      <section class="control-card">
+        <div class="control-row">
+          <div>
+            <b data-i18n="thresholdLabel">آستانهٔ تشخیص RTL</b>
+            <p data-i18n="thresholdHint">
+              درصد حروف RTL لازم برای تشخیص جهت بلوک.
+            </p>
+          </div>
+          <output class="value-badge" id="thresholdValue">۴۰٪</output>
         </div>
         <input
           type="range"
@@ -84,54 +138,47 @@
           step="5"
           value="40"
         />
-        <p class="hint" data-i18n="thresholdHint">
-          اگر بیش از این درصد از حروفِ یک بلوک، راست‌به‌چپ باشند، آن بلوک RTL
-          می‌شود.
-        </p>
       </section>
 
-      <!-- اقدامات پایین -->
-      <section class="footer-actions">
-        <label class="global-toggle">
-          <input type="checkbox" id="applyAllHosts" />
-          <span data-i18n="applyToAll"
+      <section class="quick-actions">
+        <label class="switch-row"
+          ><input type="checkbox" id="applyAllHosts" /><span
+            class="switch"
+          ></span
+          ><span data-i18n="applyToAll"
             >این حالت را برای همهٔ سایت‌ها پیش‌فرض کن</span
-          >
-        </label>
-        <button type="button" class="reset-btn" id="resetHost">
-          🗑️
+          ></label
+        >
+        <button type="button" class="text-btn danger" id="resetHost" disabled>
+          🗑
           <span data-i18n="removeHostOverride">حذف تنظیم اختصاصی این سایت</span>
         </button>
-        <!-- 🔄 اعمال روی همه‌ی تب‌ها -->
-        <button type="button" class="apply-all-btn" id="applyToAllTabs">
-          📋 <span data-i18n="applyToAllTabs">اعمال روی همه‌ی تب‌ها</span>
+        <button type="button" class="action-btn" id="applyToAllTabs">
+          ↻ <span data-i18n="applyToAllTabs">اعمال روی همه‌ی تب‌ها</span>
         </button>
-        <!-- 🔄 بازنشانی به پیش‌فرض -->
-        <button type="button" class="reset-defaults-btn" id="resetToDefaults">
-          🔄 <span data-i18n="resetToDefaults">بازنشانی به پیش‌فرض</span>
+        <button
+          type="button"
+          class="action-btn muted-action"
+          id="resetToDefaults"
+        >
+          ↺ <span data-i18n="resetToDefaults">بازنشانی به پیش‌فرض</span>
         </button>
       </section>
 
-      <p class="status" id="statusLine" aria-live="polite"></p>
-
+      <div class="status-message" id="statusLine" aria-live="polite"></div>
       <div class="bottom-actions">
-        <button type="button" class="settings-btn" id="openOptionsBtn">
-          ⚙️
-          <span data-i18n="openAdvancedSettings"
-            >تنظیمات پیشرفته (همه‌ی سایت‌ها)</span
-          >
+        <button type="button" class="primary-btn" id="openOptionsBtn">
+          <span data-i18n="openAdvancedSettings">تنظیمات پیشرفته</span>
         </button>
-        <!-- 🔗 لینک گیت‌هاب -->
         <a
           href="https://github.com/idmdakhi/Smart-Direction-RTL-LTR"
           target="_blank"
           class="github-link"
+          data-i18n="githubLink"
+          >گیت‌هاب</a
         >
-          <span data-i18n="githubLink">🌐 مشاهده در گیت‌هاب</span>
-        </a>
       </div>
     </main>
-
     <script type="module" src="popup.js"></script>
   </body>
 </html>

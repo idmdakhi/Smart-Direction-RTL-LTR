@@ -1,469 +1,381 @@
-// ============ ترجمه ============
-function translatePage() {
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const key = el.getAttribute("data-i18n");
-    const msg = chrome.i18n.getMessage(key);
-    if (msg) {
-      if (el.tagName === "INPUT" && el.hasAttribute("placeholder")) {
-        el.placeholder = msg;
-      } else if (el.tagName === "BUTTON" || el.tagName === "A") {
-        el.textContent = msg;
-      } else {
-        el.textContent = msg;
-      }
-    }
-  });
-}
-document.addEventListener("DOMContentLoaded", translatePage);
-
-function setPageDirection() {
-  const lang = chrome.i18n.getUILanguage();
-  document.documentElement.lang = lang;
-  document.documentElement.dir = lang.startsWith("fa") ? "rtl" : "ltr";
-}
-document.addEventListener("DOMContentLoaded", setPageDirection);
-
-// ============ تنظیمات پیش‌فرض ============
 const DEFAULT_SETTINGS = {
   mode: "auto",
   threshold: 0.4,
   minStrongChars: 3,
   autoDetectLanguage: true,
 };
-
-// ============ DOM refs ============
-const globalMode = document.getElementById("globalMode");
-const modeChips = Array.from(globalMode.querySelectorAll(".chip"));
-const globalThreshold = document.getElementById("globalThreshold");
-const globalThresholdVal = document.getElementById("globalThresholdVal");
-const globalMinChars = document.getElementById("globalMinChars");
-const globalMinCharsVal = document.getElementById("globalMinCharsVal");
-const autoDetectLanguage = document.getElementById("autoDetectLanguage");
-const saveGlobalBtn = document.getElementById("saveGlobal");
-const globalStatus = document.getElementById("globalStatus");
-const hostList = document.getElementById("hostList");
-const clearAllHostsBtn = document.getElementById("clearAllHosts");
-const openShortcuts = document.getElementById("openShortcuts");
-const whitelistContainer = document.getElementById("whitelist");
-const blacklistContainer = document.getElementById("blacklist");
-const whitelistInput = document.getElementById("whitelistInput");
-const blacklistInput = document.getElementById("blacklistInput");
-const addWhitelistBtn = document.getElementById("addWhitelist");
-const addBlacklistBtn = document.getElementById("addBlacklist");
-const exportBtn = document.getElementById("exportSettings");
-const importBtn = document.getElementById("importSettings");
-const importFile = document.getElementById("importFile");
-const backupStatus = document.getElementById("backupStatus");
-const statsContainer = document.getElementById("statsContainer");
-
-// ============ توابع کمکی ============
-function toPersianDigits(n) {
-  return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+const THEMES = ["system", "light", "dark"];
+const $ = (id) => document.getElementById(id);
+const globalMode = $("globalMode"),
+  modeChips = [...globalMode.querySelectorAll(".chip")];
+const thresholdValue = $("thresholdValue");
+const minCharsValue = $("minCharsValue");
+const globalThreshold = $("globalThreshold");
+const globalMinChars = $("globalMinChars");
+const autoDetectLanguage = $("autoDetectLanguage");
+const saveGlobalBtn = $("saveGlobal");
+const globalStatus = $("globalStatus");
+const hostList = $("hostList");
+const clearAllHostsBtn = $("clearAllHosts");
+const openShortcuts = $("openShortcuts");
+const whitelistContainer = $("whitelist");
+const blacklistContainer = $("blacklist");
+const whitelistInput = $("whitelistInput");
+const blacklistInput = $("blacklistInput");
+const addWhitelistBtn = $("addWhitelist");
+const addBlacklistBtn = $("addBlacklist");
+const exportBtn = $("exportSettings");
+const importBtn = $("importSettings");
+const importFile = $("importFile");
+const backupStatus = $("backupStatus");
+const statsContainer = $("statsContainer");
+const themeButtons = [...document.querySelectorAll(".theme-btn")];
+const themePreview = $("themePreview");
+function msg(k, f = "") {
+  return chrome.i18n.getMessage(k) || f;
 }
-
-function getModeNames() {
-  return {
-    auto: chrome.i18n.getMessage("modeAuto"),
-    ltr: chrome.i18n.getMessage("modeLtr"),
-    rtl: chrome.i18n.getMessage("modeRtl"),
-    browser: chrome.i18n.getMessage("modeBrowser"),
-    off: chrome.i18n.getMessage("modeOff"),
-  };
-}
-
-function paintMode(mode) {
-  modeChips.forEach((c) => {
-    c.setAttribute("aria-checked", String(c.dataset.mode === mode));
+function translate() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const m = msg(el.dataset.i18n);
+    if (m) el.textContent = m;
   });
 }
-
-function paintThreshold(t) {
-  const pct = Math.round(t * 100);
-  globalThreshold.value = String(pct);
-  globalThresholdVal.textContent = `${toPersianDigits(pct)}٪`;
+function setDirection() {
+  const l = chrome.i18n.getUILanguage();
+  document.documentElement.lang = l;
+  document.documentElement.dir = l.startsWith("fa") ? "rtl" : "ltr";
 }
-
-function paintMinChars(n) {
-  globalMinChars.value = String(n);
-  globalMinCharsVal.textContent = toPersianDigits(n);
+function persian(n) {
+  return String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
 }
-
-function modeLabel(m) {
-  const names = getModeNames();
-  return names[m] || m;
-}
-
-function showBackupStatus(msg, isError = false) {
-  backupStatus.textContent = msg;
-  backupStatus.style.color = isError ? "#B4553B" : "#2F7D6E";
-  setTimeout(() => {
-    if (backupStatus.textContent === msg) backupStatus.textContent = "";
-  }, 4000);
-}
-
-// ============ بارگذاری تنظیمات ============
-async function loadGlobal() {
-  const { smartDirectionDefaults } = await chrome.storage.sync.get(
-    "smartDirectionDefaults",
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t === "system" ? "" : t;
+  themeButtons.forEach((b) =>
+    b.setAttribute("aria-pressed", String(b.dataset.theme === t)),
   );
-  const s = { ...DEFAULT_SETTINGS, ...(smartDirectionDefaults || {}) };
+  themePreview.textContent = t === "dark" ? "☾" : t === "light" ? "☀" : "◐";
+}
+async function loadTheme() {
+  const r = await chrome.storage.sync.get("smartDirectionTheme");
+  return THEMES.includes(r.smartDirectionTheme)
+    ? r.smartDirectionTheme
+    : "system";
+}
+async function setTheme(t) {
+  await chrome.storage.sync.set({ smartDirectionTheme: t });
+  applyTheme(t);
+}
+function getModeNames() {
+  return {
+    auto: msg("modeAuto", "خودکار"),
+    ltr: msg("modeLtr", "همیشه LTR"),
+    rtl: msg("modeRtl", "همیشه RTL"),
+    browser: msg("modeBrowser", "dir=auto"),
+    off: msg("modeOff", "خاموش"),
+  };
+}
+function modeLabel(m) {
+  return getModeNames()[m] || m;
+}
+function paintMode(mode) {
+  modeChips.forEach((c) =>
+    c.setAttribute("aria-checked", String(c.dataset.mode === mode)),
+  );
+}
+function paintThreshold(t) {
+  const p = Math.round(t * 100);
+  globalThreshold.value = p;
+  updateRangeProgress(globalThreshold);
+  thresholdValue.textContent = `${persian(p)}٪`;
+}
+function paintMinChars(n) {
+  globalMinChars.value = n;
+  updateRangeProgress(globalMinChars);
+  minCharsValue.textContent = persian(n);
+}
+function status(el, text, error = false) {
+  el.textContent = text;
+  el.style.color = error ? "var(--rtl)" : "var(--auto)";
+  if (text)
+    setTimeout(() => {
+      if (el.textContent === text) el.textContent = "";
+    }, 2800);
+}
+async function loadGlobal() {
+  const r = await chrome.storage.sync.get("smartDirectionDefaults"),
+    s = { ...DEFAULT_SETTINGS, ...(r.smartDirectionDefaults || {}) };
   paintMode(s.mode);
   paintThreshold(s.threshold);
   paintMinChars(s.minStrongChars);
-  if (autoDetectLanguage)
-    autoDetectLanguage.checked = s.autoDetectLanguage !== false;
+  autoDetectLanguage.checked = s.autoDetectLanguage !== false;
 }
-
 async function loadHosts() {
-  const { smartDirectionHosts } = await chrome.storage.local.get(
-    "smartDirectionHosts",
-  );
-  const hosts = smartDirectionHosts || {};
-  const keys = Object.keys(hosts).sort();
-
+  const r = await chrome.storage.local.get("smartDirectionHosts"),
+    hosts = r.smartDirectionHosts || {},
+    keys = Object.keys(hosts).sort();
   hostList.innerHTML = "";
-  if (keys.length === 0) {
-    hostList.innerHTML = `<p class="empty-hosts">${chrome.i18n.getMessage("noHostOverrides") || "هنوز تنظیم اختصاصی برای هیچ سایتی ذخیره نشده است."}</p>`;
+  if (!keys.length) {
+    hostList.innerHTML = `<p class="empty-hosts">${msg("noHostOverrides", "هنوز تنظیم اختصاصی ثبت نشده است.")}</p>`;
     return;
   }
-
-  for (const host of keys) {
-    const conf = hosts[host];
+  for (const h of keys) {
     const item = document.createElement("div");
     item.className = "host-item";
-    const modeText = modeLabel(conf.mode || "auto");
-    item.innerHTML = `
-      <div>
-        <div class="host-name">${host}</div>
-        <div class="host-meta">${chrome.i18n.getMessage("hostModeLabel") || "حالت:"} ${modeText}</div>
-      </div>
-      <button type="button" class="host-remove" data-host="${host}">${chrome.i18n.getMessage("remove") || "حذف"}</button>
-    `;
+    item.innerHTML = `<div><div class="host-name">${escapeHtml(h)}</div><div class="host-meta">${msg("hostModeLabel", "حالت:")} ${modeLabel(hosts[h]?.mode || "auto")}</div></div><button class="host-remove" data-host="${escapeAttr(h)}">${msg("remove", "حذف")}</button>`;
     hostList.appendChild(item);
   }
-
-  hostList.querySelectorAll(".host-remove").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const h = btn.dataset.host;
-      const { smartDirectionHosts } = await chrome.storage.local.get(
-        "smartDirectionHosts",
-      );
-      const map = smartDirectionHosts || {};
-      delete map[h];
+  hostList.querySelectorAll(".host-remove").forEach((b) =>
+    b.addEventListener("click", async () => {
+      const r = await chrome.storage.local.get("smartDirectionHosts"),
+        map = r.smartDirectionHosts || {};
+      delete map[b.dataset.host];
       await chrome.storage.local.set({ smartDirectionHosts: map });
-      await loadHosts();
-    });
-  });
+      loadHosts();
+    }),
+  );
 }
-
-// 📋 لیست‌های سفید/سیاه
 async function loadLists() {
-  const { smartDirectionWhitelist } = await chrome.storage.local.get(
+  const r = await chrome.storage.local.get([
     "smartDirectionWhitelist",
-  );
-  const { smartDirectionBlacklist } = await chrome.storage.local.get(
     "smartDirectionBlacklist",
-  );
-  const whitelist = smartDirectionWhitelist || [];
-  const blacklist = smartDirectionBlacklist || [];
-
-  renderList(whitelistContainer, whitelist, "whitelist");
-  renderList(blacklistContainer, blacklist, "blacklist");
+  ]);
+  renderList(whitelistContainer, r.smartDirectionWhitelist || [], "whitelist");
+  renderList(blacklistContainer, r.smartDirectionBlacklist || [], "blacklist");
 }
-
 function renderList(container, items, type) {
   container.innerHTML = "";
-  if (items.length === 0) {
-    container.innerHTML = `<p class="empty-hosts">${chrome.i18n.getMessage("emptyList") || "خالی"}</p>`;
+  if (!items.length) {
+    container.innerHTML = `<p class="empty-hosts">${msg("emptyList", "خالی")}</p>`;
     return;
   }
-  for (const host of items) {
+  for (const h of items) {
     const item = document.createElement("div");
     item.className = "host-item";
-    item.innerHTML = `
-      <span class="host-name">${host}</span>
-      <button type="button" class="host-remove" data-host="${host}" data-type="${type}">${chrome.i18n.getMessage("remove") || "حذف"}</button>
-    `;
+    item.innerHTML = `<span class="host-name">${escapeHtml(h)}</span><button class="host-remove" data-host="${escapeAttr(h)}" data-type="${type}">${msg("remove", "حذف")}</button>`;
     container.appendChild(item);
   }
-
-  container.querySelectorAll(".host-remove").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const host = btn.dataset.host;
-      const type = btn.dataset.type;
+  container.querySelectorAll(".host-remove").forEach((b) =>
+    b.addEventListener("click", async () => {
       const key =
-        type === "whitelist"
-          ? "smartDirectionWhitelist"
-          : "smartDirectionBlacklist";
-      const { [key]: list } = await chrome.storage.local.get(key);
-      const newList = (list || []).filter((h) => h !== host);
-      await chrome.storage.local.set({ [key]: newList });
-      await loadLists();
-    });
-  });
+          b.dataset.type === "whitelist"
+            ? "smartDirectionWhitelist"
+            : "smartDirectionBlacklist",
+        r = await chrome.storage.local.get(key),
+        list = (r[key] || []).filter((h) => h !== b.dataset.host);
+      await chrome.storage.local.set({ [key]: list });
+      loadLists();
+    }),
+  );
 }
-
-async function addToList(type, host) {
-  if (!host || !/^[a-zA-Z0-9.\-_]+$/.test(host)) {
-    alert(chrome.i18n.getMessage("invalidHost") || "نام سایت نامعتبر است.");
+async function addToList(type, value) {
+  const host = value.trim();
+  if (!/^[a-zA-Z0-9._-]+$/.test(host)) {
+    alert(msg("invalidHost", "نام سایت نامعتبر است."));
     return;
   }
   const key =
-    type === "whitelist"
-      ? "smartDirectionWhitelist"
-      : "smartDirectionBlacklist";
-  const { [key]: list } = await chrome.storage.local.get(key);
-  const newList = list || [];
-  if (newList.includes(host)) {
-    alert(
-      chrome.i18n.getMessage("alreadyExists") ||
-        "این سایت قبلاً اضافه شده است.",
-    );
+      type === "whitelist"
+        ? "smartDirectionWhitelist"
+        : "smartDirectionBlacklist",
+    r = await chrome.storage.local.get(key),
+    list = r[key] || [];
+  if (list.includes(host)) {
+    alert(msg("alreadyExists", "این سایت قبلاً اضافه شده است."));
     return;
   }
-  newList.push(host);
-  await chrome.storage.local.set({ [key]: newList });
+  await chrome.storage.local.set({ [key]: [...list, host] });
   await loadLists();
 }
-
-// ============ رویدادها ============
-modeChips.forEach((chip) => {
-  chip.addEventListener("click", () => paintMode(chip.dataset.mode));
-});
-
+function escapeHtml(v) {
+  return String(v).replace(
+    /[&<>"']/g,
+    (c) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      })[c],
+  );
+}
+function escapeAttr(v) {
+  return escapeHtml(v);
+}
+modeChips.forEach((c) =>
+  c.addEventListener("click", () => paintMode(c.dataset.mode)),
+);
 globalThreshold.addEventListener("input", () => {
-  globalThresholdVal.textContent = `${toPersianDigits(globalThreshold.value)}٪`;
-});
-globalMinChars.addEventListener("input", () => {
-  globalMinCharsVal.textContent = toPersianDigits(globalMinChars.value);
+  updateRangeProgress(globalThreshold);
+  const pct = Number(globalThreshold.value);
+  thresholdValue.textContent = `${persian(pct)}٪`;
 });
 
+globalMinChars.addEventListener("input", () => {
+  updateRangeProgress(globalMinChars);
+  const val = Number(globalMinChars.value);
+  minCharsValue.textContent = persian(val);
+});
 saveGlobalBtn.addEventListener("click", async () => {
   const mode =
     modeChips.find((c) => c.getAttribute("aria-checked") === "true")?.dataset
       .mode || "auto";
-  const threshold = Number(globalThreshold.value) / 100;
-  const minStrongChars = Number(globalMinChars.value);
-  const autoDetect = autoDetectLanguage.checked;
   await chrome.storage.sync.set({
     smartDirectionDefaults: {
       mode,
-      threshold,
-      minStrongChars,
-      autoDetectLanguage: autoDetect,
+      threshold: Number(globalThreshold.value) / 100,
+      minStrongChars: Number(globalMinChars.value),
+      autoDetectLanguage: autoDetectLanguage.checked,
     },
   });
-  globalStatus.textContent = chrome.i18n.getMessage("saved") || "ذخیره شد.";
-  setTimeout(() => {
-    globalStatus.textContent = "";
-  }, 2500);
+  status(globalStatus, msg("saved", "ذخیره شد."));
 });
-
 clearAllHostsBtn.addEventListener("click", async () => {
-  const confirmMsg =
-    chrome.i18n.getMessage("confirmClearAllHosts") ||
-    "همهٔ تنظیمات اختصاصی سایت‌ها حذف شود؟";
-  if (!confirm(confirmMsg)) return;
+  if (
+    !confirm(
+      msg("confirmClearAllHosts", "همهٔ تنظیمات اختصاصی سایت‌ها حذف شود؟"),
+    )
+  )
+    return;
   await chrome.storage.local.set({ smartDirectionHosts: {} });
-  await loadHosts();
+  loadHosts();
 });
-
 openShortcuts.addEventListener("click", (e) => {
   e.preventDefault();
   chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
 });
-
-// لیست‌ها
 addWhitelistBtn.addEventListener("click", () => {
-  addToList("whitelist", whitelistInput.value.trim());
+  addToList("whitelist", whitelistInput.value);
   whitelistInput.value = "";
 });
-whitelistInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    addToList("whitelist", whitelistInput.value.trim());
-    whitelistInput.value = "";
-  }
-});
-
 addBlacklistBtn.addEventListener("click", () => {
-  addToList("blacklist", blacklistInput.value.trim());
+  addToList("blacklist", blacklistInput.value);
   blacklistInput.value = "";
 });
-blacklistInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    addToList("blacklist", blacklistInput.value.trim());
-    blacklistInput.value = "";
-  }
+whitelistInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") addWhitelistBtn.click();
 });
-
-// 💾 پشتیبان‌گیری
+blacklistInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") addBlacklistBtn.click();
+});
 exportBtn.addEventListener("click", async () => {
   try {
-    const [defaults, hosts, whitelist, blacklist] = await Promise.all([
-      chrome.storage.sync.get("smartDirectionDefaults"),
-      chrome.storage.local.get("smartDirectionHosts"),
-      chrome.storage.local.get("smartDirectionWhitelist"),
-      chrome.storage.local.get("smartDirectionBlacklist"),
+    const [sync, local] = await Promise.all([
+      chrome.storage.sync.get([
+        "smartDirectionDefaults",
+        "smartDirectionTheme",
+      ]),
+      chrome.storage.local.get([
+        "smartDirectionHosts",
+        "smartDirectionWhitelist",
+        "smartDirectionBlacklist",
+      ]),
     ]);
-
     const data = {
       version: chrome.runtime.getManifest().version,
       exported: new Date().toISOString(),
-      defaults: defaults.smartDirectionDefaults || {},
-      hosts: hosts.smartDirectionHosts || {},
-      whitelist: whitelist.smartDirectionWhitelist || [],
-      blacklist: blacklist.smartDirectionBlacklist || [],
+      defaults: sync.smartDirectionDefaults || {},
+      theme: sync.smartDirectionTheme || "system",
+      hosts: local.smartDirectionHosts || {},
+      whitelist: local.smartDirectionWhitelist || [],
+      blacklist: local.smartDirectionBlacklist || [],
     };
-
     const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+        type: "application/json",
+      }),
+      url = URL.createObjectURL(blob),
+      a = document.createElement("a");
     a.href = url;
     a.download = `smart-direction-backup-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showBackupStatus(
-      chrome.i18n.getMessage("exportSuccess") || "✅ خروجی با موفقیت ذخیره شد.",
-    );
-  } catch (error) {
-    console.error("Export error:", error);
-    showBackupStatus(
-      chrome.i18n.getMessage("exportError") || "❌ خطا در خروجی",
-      true,
-    );
+    status(backupStatus, msg("exportSuccess", "خروجی با موفقیت ذخیره شد."));
+  } catch (e) {
+    console.error(e);
+    status(backupStatus, msg("exportError", "خطا در خروجی"), true);
   }
 });
-
-importBtn.addEventListener("click", () => {
-  importFile.click();
-});
-
+importBtn.addEventListener("click", () => importFile.click());
 importFile.addEventListener("change", async (e) => {
-  const file = e.target.files[0];
+  const file = e.target.files?.[0];
   if (!file) return;
   try {
-    const text = await file.text();
-    const data = JSON.parse(text);
-
-    if (!data.version) {
-      throw new Error("Invalid backup file");
-    }
-
-    if (data.defaults)
-      await chrome.storage.sync.set({ smartDirectionDefaults: data.defaults });
-    if (data.hosts)
-      await chrome.storage.local.set({ smartDirectionHosts: data.hosts });
-    if (data.whitelist)
-      await chrome.storage.local.set({
-        smartDirectionWhitelist: data.whitelist,
-      });
-    if (data.blacklist)
-      await chrome.storage.local.set({
-        smartDirectionBlacklist: data.blacklist,
-      });
-
-    showBackupStatus(
-      chrome.i18n.getMessage("importSuccess") ||
-        "✅ تنظیمات با موفقیت وارد شد.",
-    );
-    setTimeout(() => location.reload(), 1500);
-  } catch (error) {
-    console.error("Import error:", error);
-    showBackupStatus(
-      chrome.i18n.getMessage("importError") || "❌ خطا در ورودی",
-      true,
-    );
+    const data = JSON.parse(await file.text());
+    if (!data.version) throw new Error("invalid backup");
+    await chrome.storage.sync.set({
+      smartDirectionDefaults: data.defaults || DEFAULT_SETTINGS,
+      smartDirectionTheme: THEMES.includes(data.theme) ? data.theme : "system",
+    });
+    await chrome.storage.local.set({
+      smartDirectionHosts: data.hosts || {},
+      smartDirectionWhitelist: data.whitelist || [],
+      smartDirectionBlacklist: data.blacklist || [],
+    });
+    applyTheme(THEMES.includes(data.theme) ? data.theme : "system");
+    status(backupStatus, msg("importSuccess", "تنظیمات با موفقیت وارد شد."));
+    await Promise.all([loadGlobal(), loadHosts(), loadLists(), loadStats()]);
+  } catch (e) {
+    console.error(e);
+    status(backupStatus, msg("importError", "خطا در ورودی"), true);
+  } finally {
+    importFile.value = "";
   }
-  importFile.value = "";
 });
-
-// 📊 آمار
 async function loadStats() {
   try {
-    const { smartDirectionStats } = await chrome.storage.local.get(
-      "smartDirectionStats",
-    );
-    const stats = smartDirectionStats || null;
-
-    if (!stats || stats.totalSites === 0) {
-      statsContainer.innerHTML = `<p class="stats-empty">${chrome.i18n.getMessage("noStats") || "هنوز آماری ثبت نشده است."}</p>`;
+    const r = await chrome.storage.local.get("smartDirectionStats"),
+      s = r.smartDirectionStats;
+    if (!s || !s.totalSites) {
+      statsContainer.innerHTML = `<p class="stats-empty">${msg("noStats", "هنوز آماری ثبت نشده است.")}</p>`;
       return;
     }
-
-    const totalSites = stats.totalSites || 0;
-    const totalBlocks = stats.totalBlocks || 0;
-    const lastUsed = stats.lastUsed
-      ? new Date(stats.lastUsed).toLocaleString()
-      : "—";
-    const modeChanges = stats.modeChanges || {};
-    const totalChanges = Object.values(modeChanges).reduce((a, b) => a + b, 0);
-
-    const sortedModes = Object.entries(modeChanges).sort((a, b) => b[1] - a[1]);
-
-    let html = `
-      <div class="stats-grid">
-        <div class="stat-item"><span class="stat-label">${chrome.i18n.getMessage("totalSites") || "تعداد سایت‌ها:"}</span> <span class="stat-value">${toPersianDigits(totalSites)}</span></div>
-        <div class="stat-item"><span class="stat-label">${chrome.i18n.getMessage("totalBlocks") || "تعداد بلوک‌ها:"}</span> <span class="stat-value">${toPersianDigits(totalBlocks)}</span></div>
-        <div class="stat-item"><span class="stat-label">${chrome.i18n.getMessage("totalChanges") || "تعداد تغییرات:"}</span> <span class="stat-value">${toPersianDigits(totalChanges)}</span></div>
-        <div class="stat-item"><span class="stat-label">${chrome.i18n.getMessage("lastUsed") || "آخرین استفاده:"}</span> <span class="stat-value">${lastUsed}</span></div>
-      </div>
-      <div class="stats-modes">
-        <h4>${chrome.i18n.getMessage("modeDistribution") || "توزیع حالت‌ها:"}</h4>
-    `;
-
-    for (const [mode, count] of sortedModes) {
-      const pct =
-        totalChanges > 0 ? Math.round((count / totalChanges) * 100) : 0;
-      const modeName = modeLabel(mode);
-      html += `
-        <div class="mode-bar">
-          <span class="mode-bar-label">${modeName}</span>
-          <div class="mode-bar-track">
-            <div class="mode-bar-fill" style="width: ${pct}%; background: ${getModeColor(mode)}"></div>
-          </div>
-          <span class="mode-bar-count">${toPersianDigits(count)} (${toPersianDigits(pct)}%)</span>
-        </div>
-      `;
-    }
-
-    html += `</div>`;
-    statsContainer.innerHTML = html;
-  } catch (error) {
-    console.error("Stats error:", error);
-    statsContainer.innerHTML = `<p class="stats-empty">${chrome.i18n.getMessage("statsError") || "خطا در بارگذاری آمار"}</p>`;
+    const totalSites = s.totalSites || 0,
+      totalBlocks = s.totalBlocks || 0,
+      changes = s.modeChanges || {},
+      totalChanges = Object.values(changes).reduce((a, b) => a + b, 0);
+    statsContainer.innerHTML =
+      `<div class="stats-grid-three"><div class="stats-item-three"><div class="stats-value-three">${persian(totalSites)}</div><div class="stats-label-three">${msg("statsSites", "سایت‌ها")}</div></div><div class="stats-item-three"><div class="stats-value-three">${persian(totalBlocks)}</div><div class="stats-label-three">${msg("statsBlocks", "بلوک‌ها")}</div></div><div class="stats-item-three"><div class="stats-value-three">${persian(totalChanges)}</div><div class="stats-label-three">${msg("statsChanges", "تغییرات")}</div></div></div>` +
+      (totalChanges
+        ? `<div class="stats-modes"><h4>${msg("modeDistribution", "توزیع حالت‌ها")}</h4>${Object.entries(
+            changes,
+          )
+            .sort((a, b) => b[1] - a[1])
+            .map(([m, c]) => {
+              const pct = Math.round((c / totalChanges) * 100);
+              return `<div class="mode-bar"><span class="mode-bar-label">${modeLabel(m)}</span><div class="mode-bar-track"><div class="mode-bar-fill" style="width:${pct}%;background:var(--${m === "auto" ? "auto" : m === "ltr" ? "ltr" : m === "rtl" ? "rtl" : "off"})"></div></div><span class="mode-bar-count">${persian(c)} (${persian(pct)}٪)</span></div>`;
+            })
+            .join("")}</div>`
+        : "");
+  } catch (e) {
+    console.error(e);
+    statsContainer.innerHTML = `<p class="stats-empty">${msg("statsError", "خطا در بارگذاری آمار")}</p>`;
   }
 }
-
-function getModeColor(mode) {
-  const colors = {
-    auto: "#2F7D6E",
-    ltr: "#3B6CB4",
-    rtl: "#B4553B",
-    off: "#8A8A8A",
-  };
-  return colors[mode] || "#78756c";
-}
-
-// ============ مقداردهی اولیه ============
-loadGlobal();
-loadHosts();
-loadLists();
-loadStats();
-
-try {
-  const manifest = chrome.runtime.getManifest();
-  const el = document.getElementById("footerVersion");
-  if (el && manifest?.version) {
-    el.textContent = `${chrome.i18n.getMessage("version") || "نسخه"} ${manifest.version}`;
-  }
-} catch {}
-
-// ============ شنیدن تغییرات ============
-chrome.storage.onChanged.addListener(() => {
-  loadGlobal();
-  loadHosts();
-  loadLists();
-  loadStats();
+themeButtons.forEach((b) =>
+  b.addEventListener("click", () => setTheme(b.dataset.theme)),
+);
+chrome.storage.onChanged.addListener(async (changes) => {
+  if (changes.smartDirectionTheme)
+    applyTheme(changes.smartDirectionTheme.newValue || "system");
+  await Promise.all([loadGlobal(), loadHosts(), loadLists(), loadStats()]);
 });
+async function init() {
+  translate();
+  setDirection();
+  applyTheme(await loadTheme());
+  await Promise.all([loadGlobal(), loadHosts(), loadLists(), loadStats()]);
+  try {
+    const m = chrome.runtime.getManifest();
+    $("footerVersion").textContent = `${msg("version", "نسخه")} ${m.version}`;
+  } catch {}
+}
+
+function updateRangeProgress(input) {
+  const min = Number(input.min);
+  const max = Number(input.max);
+  const value = Number(input.value);
+  const percent = ((value - min) / (max - min)) * 100;
+  input.style.setProperty("--range-progress", `${percent}%`);
+}
+
+init();

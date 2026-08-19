@@ -218,5 +218,73 @@
   "removeError": {
     "message": "❌ Remove error",
     "description": "Remove error message"
+  },
+  "statusBarModeLabel": {
+    "message": "Current status",
+    "description": "statusBarModeLabel"
+  },
+  "processedBlocksShort": {
+    "message": "blocks",
+    "description": "processedBlocksShort"
+  },
+  "statusLive": {
+    "message": "Active",
+    "description": "statusLive"
+  },
+  "modeSectionTitle": {
+    "message": "Direction mode",
+    "description": "modeSectionTitle"
+  },
+  "modeSectionDesc": {
+    "message": "Choose the text direction for this site.",
+    "description": "modeSectionDesc"
+  },
+  "themeSystem": {
+    "message": "System",
+    "description": "themeSystem"
+  },
+  "themeLight": {
+    "message": "Light",
+    "description": "themeLight"
+  },
+  "themeDark": {
+    "message": "Dark",
+    "description": "themeDark"
+  },
+  "themeChanged": {
+    "message": "Theme changed: ",
+    "description": "themeChanged"
+  },
+  "appearanceTitle": {
+    "message": "Appearance",
+    "description": "appearanceTitle"
+  },
+  "themeTitle": {
+    "message": "App theme",
+    "description": "themeTitle"
+  },
+  "themeDesc": {
+    "message": "Choose the appearance of the popup and settings page.",
+    "description": "themeDesc"
+  },
+  "statsDesc": {
+    "message": "A quick summary of extension usage.",
+    "description": "statsDesc"
+  },
+  "tabs": {
+    "message": "tabs",
+    "description": "tabs"
+  },
+  "appliedTabsPrefix": {
+    "message": "Applied to ",
+    "description": "appliedTabsPrefix"
+  },
+  "applyTabsError": {
+    "message": "Failed to apply to tabs",
+    "description": "applyTabsError"
+  },
+  "defaultsReset": {
+    "message": "Settings were reset.",
+    "description": "defaultsReset"
   }
 }

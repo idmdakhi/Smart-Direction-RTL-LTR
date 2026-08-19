@@ -9,5 +9,13 @@
   "devDependencies": {
     "vitest": "^2.0.5",
     "happy-dom": "^14.12.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/idmdakhi/Smart-Direction-RTL-LTR.git"
+  },
+  "bugs": {
+    "url": "https://github.com/idmdakhi/Smart-Direction-RTL-LTR/issues"
+  },
+  "homepage": "https://github.com/idmdakhi/Smart-Direction-RTL-LTR#readme"
 }

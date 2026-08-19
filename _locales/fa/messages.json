@@ -218,5 +218,73 @@
   "removeError": {
     "message": "❌ خطا در حذف",
     "description": "خطای حذف"
+  },
+  "statusBarModeLabel": {
+    "message": "وضعیت فعلی",
+    "description": "statusBarModeLabel"
+  },
+  "processedBlocksShort": {
+    "message": "بلوک",
+    "description": "processedBlocksShort"
+  },
+  "statusLive": {
+    "message": "فعال",
+    "description": "statusLive"
+  },
+  "modeSectionTitle": {
+    "message": "حالت جهت‌دهی",
+    "description": "modeSectionTitle"
+  },
+  "modeSectionDesc": {
+    "message": "جهت نمایش متن این سایت را انتخاب کنید.",
+    "description": "modeSectionDesc"
+  },
+  "themeSystem": {
+    "message": "سیستم",
+    "description": "themeSystem"
+  },
+  "themeLight": {
+    "message": "روشن",
+    "description": "themeLight"
+  },
+  "themeDark": {
+    "message": "تاریک",
+    "description": "themeDark"
+  },
+  "themeChanged": {
+    "message": "تم تغییر کرد: ",
+    "description": "themeChanged"
+  },
+  "appearanceTitle": {
+    "message": "ظاهر",
+    "description": "appearanceTitle"
+  },
+  "themeTitle": {
+    "message": "تم برنامه",
+    "description": "themeTitle"
+  },
+  "themeDesc": {
+    "message": "ظاهر پاپ‌آپ و صفحه تنظیمات را انتخاب کنید.",
+    "description": "themeDesc"
+  },
+  "statsDesc": {
+    "message": "خلاصه‌ای از استفاده از افزونه.",
+    "description": "statsDesc"
+  },
+  "tabs": {
+    "message": "تب",
+    "description": "tabs"
+  },
+  "appliedTabsPrefix": {
+    "message": "اعمال شد روی ",
+    "description": "appliedTabsPrefix"
+  },
+  "applyTabsError": {
+    "message": "خطا در اعمال روی تب‌ها",
+    "description": "applyTabsError"
+  },
+  "defaultsReset": {
+    "message": "تنظیمات بازنشانی شد.",
+    "description": "defaultsReset"
   }
 }
